@@ -48,7 +48,37 @@ class RegistroController
             Redirect::to('/registro');
         }
 
-        $this->model->registrar($datos['usuario'], $datos['email'], $datos['password']);
-        Redirect::to('/?registro_ok=1');
+        $token = $this->model->registrar($datos['usuario'], $datos['email'], $datos['password']);
+        if ($token) {
+
+            \Mailer::enviarValidacion($datos['email'], $datos['usuario'], $token);
+        }
+
+
+        //Redirect::to('/?registro_ok=1');
+        Redirect::to('/registro/verificarEmail');
+    }
+
+    public function verificarEmail()
+    {
+        $this->render->renderiza("verificarEmail");
+    }
+
+    public function validarToken()
+    {
+        $token = $_GET['token'] ?? null;
+
+        if ($token) {
+            $resultado = $this->model->validarCuenta($token);
+
+            if ($resultado) {
+                $_SESSION['login_exito'] = "¡Cuenta activada con éxito! Ya podés iniciar sesión.";
+            } else {
+                $_SESSION['login_error'] = "El token es inválido o la cuenta ya fue activada.";
+            }
+        }
+
+        // Redirige a la página principal / login para que el usuario ingrese con sus datos
+        Redirect::to('/');
     }
 }
