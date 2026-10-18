@@ -35,7 +35,7 @@ class Mailer
             $mail->Subject = 'Confirmá tu cuenta en SmartTrivia';
             $mail->Body = "
                 <h2>¡Hola, {$nombre}!</h2>
-                <p>Gracias por registrarte en <strong>Preguntados</strong>.</p>
+                <p>Gracias por registrarte en <strong>SmartTrivia</strong>.</p>
                 <p>Para activar tu cuenta hacé clic en el siguiente botón:</p>
                 <p>
                     <a href='{$link}'

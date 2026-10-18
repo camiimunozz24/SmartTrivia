@@ -12,14 +12,19 @@ class LoginModel
 
     public function autenticar($usuario, $password)
     {
-        $sql = "SELECT id, usuario, password FROM usuarios WHERE usuario = ? OR email = ?";
+        $sql = "SELECT id, usuario, password, estado FROM usuarios WHERE usuario = ? OR email = ?";
         $fila = $this->database->queryOne($sql, [$usuario, $usuario]);
 
         if ($fila === null || !password_verify($password, $fila['password'])) {
             return null;
         }
 
-        return ["id" => $fila["id"], "usuario" => $fila["usuario"]];
+        return ["id" => $fila["id"],
+                "usuario" => $fila["usuario"],
+                "estado" => $fila["estado"]];
     }
+
+
+
 }
 

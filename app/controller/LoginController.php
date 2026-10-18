@@ -21,11 +21,17 @@ class LoginController
             Redirect::to('/equipo/show');
         }
 
+        $error = null;
+        if (Request::get('login_error') !== null) {
+            $error = "Usuario o contraseña incorrectos.";
+        } elseif (Request::get('error_verificacion') !== null) {
+            $error = "Tu cuenta aún no está activada. Por favor, revisá tu casilla de correo.";
+        }
+
         $data = [
-            "error" => Request::get('login_error') !== null ? "Usuario o contraseña incorrectos." : null,
+            "error" => $error,
             "registro_ok" => Request::get('registro_ok') !== null,
         ];
-
         $this->render->renderiza("login", $data);
     }
 
@@ -35,6 +41,10 @@ class LoginController
 
         if ($usuario === null) {
             Redirect::to('/login/show?login_error=1'); // <-- Ruta explícita
+        }
+        if ($usuario['estado'] !== 'activo') {
+            Redirect::to('/login/show?error_verificacion=1');
+            return;
         }
 
         session_regenerate_id(true);
