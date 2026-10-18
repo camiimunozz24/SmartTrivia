@@ -1,0 +1,83 @@
+/* ==========================================================================
+   ESTILOS PARA TARJETAS DE LOGIN Y REGISTRO
+   ========================================================================== */
+
+/* Tarjeta de Inicio de Sesión*/
+.card-trivia-login {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
+    border-top: 6px solid #2196F3;
+    padding: 32px;
+}
+
+/* Tarjeta de Registro */
+.card-trivia-registro {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
+    border-top: 6px solid #4CAF50;
+    padding: 32px;
+}
+
+/* Cajas de entrada */
+.w3-input {
+    padding: 12px !important;
+    border-radius: 4px;
+    margin-top: 8px;
+}
+/* Centrar login */
+.login {
+    margin-top: 15vh;
+}
+
+.campo-password {
+    position: relative;
+}
+
+.campo-password input {
+    padding-right: 44px;
+}
+
+/* Visibilidad password*/
+.ojo {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: 0;
+    cursor: pointer;
+    color: #90a4ae;
+    display: flex;
+    padding: 4px;
+}
+
+.ojo.visible {
+    color: #2196F3;
+}
+
+/* Oculta el botón de Inicio en el login y registro */
+body:has(.card-trivia-login) .w3-bar a[href="/"],
+body:has(.card-trivia-registro) .w3-bar a[href="/"] {
+    display: none !important;
+}
+
+/* Fondo */
+body {
+    min-height: 100vh;
+    background: #0d0824 url("../img/fondo-trivia.svg") center / cover no-repeat;
+    background-attachment: fixed;
+}
+footer,
+footer a {
+    color: #fff;
+
+}
+
+
+
+
+
+
+

@@ -9,29 +9,33 @@ class MyDatabase
         $this->conexion = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
     }
 
-    public function queryOne(string $sql)
+    public function queryOne(string $sql, array $params = [])
     {
         Log::info($sql);
-        $resultado = $this->conexion->query($sql, PDO::FETCH_ASSOC);
-        $fila = $resultado->fetch();
+        $resultado = $this->conexion->prepare($sql);
+        $resultado->execute($params);
+        $fila = $resultado->fetch(PDO::FETCH_ASSOC);
         return $fila === false ? null : $fila;
     }
 
-    public function queryAll(string $sql)
+    public function queryAll(string $sql, array $params = [])
     {
         Log::info($sql);
-        $resultado = $this->conexion->query($sql, PDO::FETCH_ASSOC);
-        return $resultado->fetchAll();
+        $resultado = $this->conexion->prepare($sql);
+        $resultado->execute($params);
+        return $resultado->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function execute(string $sql)
+    public function execute(string $sql, array $params = [])
     {
         Log::info($sql);
-        return $this->conexion->exec($sql);
+        $resultado = $this->conexion->prepare($sql);
+        $resultado->execute($params);
+        return $resultado->rowCount();
     }
-
     public function lastInsertId()
     {
         return $this->conexion->lastInsertId();
     }
 }
+

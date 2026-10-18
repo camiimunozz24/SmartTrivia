@@ -10,4 +10,9 @@
 
 <div class="w3-bar w3-green">
     <a href="/" class="w3-bar-item w3-button">🏠 Inicio</a>
+
+    <?php if (isset($_SESSION['usuario_id'])): ?>
+        <a href="/login/logout" class="w3-bar-item w3-button w3-right">Cerrar sesión</a>
+        <span class="w3-bar-item w3-right">👤 <?= htmlspecialchars($_SESSION['usuario']) ?></span>
+    <?php endif; ?>
 </div>

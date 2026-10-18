@@ -1,0 +1,62 @@
+<link rel="stylesheet" href="/public/css/login.css">
+<div class="w3-content registro" style="max-width:450px">
+    <div class="card-trivia-registro w3-margin-top">
+        <h2 class="w3-center">Crear cuenta</h2>
+
+        {{#error}}
+            <div class="w3-panel w3-pale-red w3-leftbar w3-border-red">
+                <p>{{error}}</p>
+            </div>
+        {{/error}}
+
+        <form action="/registro/registrar" method="post">
+            <p>
+                <label for="usuario">Usuario</label>
+                <input class="w3-input w3-border" type="text" id="usuario" name="usuario" maxlength="50" required autofocus>
+            </p>
+            <p>
+                <label for="email">Email</label>
+                <input class="w3-input w3-border" type="email" id="email" name="email" maxlength="100" required>
+            </p>
+            <div class="w3-section">
+                            <label for="password">Contraseña</label>
+                            <div class="campo-password">
+                                <input class="w3-input w3-border" type="password" id="password" name="password" minlength="6" required>
+                                <button type="button" class="ojo" aria-label="Mostrar contraseña">
+                                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="w3-section">
+                            <label for="confirmar_password">Repetir contraseña</label>
+                            <div class="campo-password">
+                                <input class="w3-input w3-border" type="password" id="confirmar_password" name="confirmar_password" minlength="6" required>
+                                <button type="button" class="ojo" aria-label="Mostrar contraseña">
+                                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+            <button class="w3-button w3-green w3-block" type="submit">Registrarme</button>
+        </form>
+
+        <p class="w3-center">¿Ya tenés cuenta? <a href="/">Iniciá sesión</a></p>
+    </div>
+</div>
+<script>
+  document.querySelectorAll(".ojo").forEach((ojo) => {
+    const campo = ojo.parentElement.querySelector("input");
+    ojo.addEventListener("click", () => {
+      const mostrar = campo.type === "password";
+      campo.type = mostrar ? "text" : "password";
+      ojo.classList.toggle("visible", mostrar);
+    });
+  });
+</script>

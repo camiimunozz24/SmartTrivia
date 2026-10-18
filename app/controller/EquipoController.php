@@ -1,7 +1,7 @@
 <?php
 
 namespace app\controller;
-
+use Redirect;
 class EquipoController
 {
     private $render;
@@ -13,8 +13,12 @@ class EquipoController
 
     public function show()
     {
+        if (!isset($_SESSION['usuario_id'])) {
+            Redirect::to('/login/show');
+        }
+
         $data = [
-            "equipo" => "SmartDevsme ",
+            "equipo" => "SmartDevs",
             "integrantes" => [
                 ["nombre" => "Sidero, Celeste Melany"],
                 ["nombre" => "Ramirez, Natalia Belén"],
