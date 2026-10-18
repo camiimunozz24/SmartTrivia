@@ -50,6 +50,9 @@ class RegistroModel
     public function validarCuenta($token)
     {
         $sql = "UPDATE usuarios SET estado = 'activo', token_validacion = NULL WHERE token_validacion = ?";
-        return $this->database->execute($sql, [$token]);
+        $filasAfectadas = $this->database->execute($sql, [$token]);
+
+        //si afecto al menos una fila, el token es valido.
+        return $filasAfectadas > 0;
     }
 }

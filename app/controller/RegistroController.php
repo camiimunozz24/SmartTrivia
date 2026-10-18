@@ -72,13 +72,13 @@ class RegistroController
             $resultado = $this->model->validarCuenta($token);
 
             if ($resultado) {
-                $_SESSION['login_exito'] = "¡Cuenta activada con éxito! Ya podés iniciar sesión.";
-            } else {
-                $_SESSION['login_error'] = "El token es inválido o la cuenta ya fue activada.";
+               //exito, redirigimos a login.
+                Redirect::to('/login/show');
+                return;
             }
         }
 
-        // Redirige a la página principal / login para que el usuario ingrese con sus datos
-        Redirect::to('/');
+        // Si el token falló o no vino, lo mandamos directo al login con el error de verificación
+        Redirect::to('/login/show?error_verificacion=1');
     }
 }
