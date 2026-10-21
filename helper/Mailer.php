@@ -55,9 +55,8 @@ class Mailer
             $mail->send();
             return true;
         } catch (Exception $e) {
-            //Log::info("Error enviando mail: " . $mail->ErrorInfo);
+            error_log("Error enviando mail: " . $mail->ErrorInfo);
             return false;
-
         }
 
     }

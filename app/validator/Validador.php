@@ -9,7 +9,7 @@ class Validador
     {
         $this->reglas = $reglas;
     }
-
+    // Crea el metodo validador
     public function validar(array $datos)
     {
         foreach ($this->reglas as $regla) {

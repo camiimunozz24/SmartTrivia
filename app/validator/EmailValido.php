@@ -3,6 +3,7 @@
 namespace app\validator;
 class EmailValido implements Regla
 {
+    // Revisa el formato del email
     public function validar(array $datos)
     {
         $email = $datos['email'];

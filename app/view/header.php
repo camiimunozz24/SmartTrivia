@@ -5,14 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>SmartTrivia</title>
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <style>
+        .w3-bar.barra-flex {
+            display: flex;
+            align-items: center;
+        }
+        .w3-bar.barra-flex .w3-bar-item {
+            float: none;
+        }
+        .w3-bar.barra-flex .usuario-header {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .usuario-header img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #fff;
+        }
+    </style>
 </head>
 <body>
 
-<div class="w3-bar w3-green">
+<div class="w3-bar w3-green barra-flex">
     <a href="/" class="w3-bar-item w3-button">🏠 Inicio</a>
 
     <?php if (isset($_SESSION['usuario_id'])): ?>
-        <a href="/login/logout" class="w3-bar-item w3-button w3-right">Cerrar sesión</a>
-        <span class="w3-bar-item w3-right">👤 <?= htmlspecialchars($_SESSION['usuario']) ?></span>
+        <span class="w3-bar-item usuario-header">
+            <?php if (!empty($_SESSION['foto_perfil'])): ?>
+                <img src="/public/img/perfiles/<?= htmlspecialchars($_SESSION['foto_perfil']) ?>"
+                     alt="Foto de perfil">
+            <?php else: ?>
+                👤
+            <?php endif; ?>
+            <?= htmlspecialchars($_SESSION['usuario']) ?>
+        </span>
+        <a href="/login/logout" class="w3-bar-item w3-button">Cerrar sesión</a>
     <?php endif; ?>
 </div>

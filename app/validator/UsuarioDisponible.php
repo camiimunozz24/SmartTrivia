@@ -3,6 +3,7 @@
 namespace app\validator;
 class UsuarioDisponible implements Regla
 {
+    // Comprueba en la bd que el nombre de usuario no esté registrado
     private $model;
 
     public function __construct($model)

@@ -8,7 +8,25 @@
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
     border-top: 6px solid #2196F3;
-    padding: 32px;
+    padding: 40px;
+}
+
+.card-trivia-login h2 {
+    font-size: 30px;
+    margin-bottom: 24px;
+}
+
+.card-trivia-login label {
+    display: block;
+    font-size: 15px;
+    font-weight: 500;
+    color: #212c32;
+    letter-spacing: 0.3px;
+}
+
+.card-trivia-login .w3-button {
+    padding: 14px 16px;
+    font-size: 16px;
 }
 
 /* Tarjeta de Registro */
@@ -28,7 +46,8 @@
 }
 /* Centrar login */
 .login {
-    margin-top: 15vh;
+    max-width: 520px !important;
+    margin-top: 8vh;
 }
 
 .campo-password {
@@ -69,10 +88,16 @@ body {
     background: #0d0824 url("../img/fondo-trivia.svg") center / cover no-repeat;
     background-attachment: fixed;
 }
+
 footer,
 footer a {
     color: #fff;
 
+}
+@media (max-width: 600px) {
+    .card-trivia-login {
+        padding: 20px;
+    }
 }
 
 

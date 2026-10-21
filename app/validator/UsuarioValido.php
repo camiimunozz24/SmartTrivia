@@ -3,6 +3,7 @@
 namespace app\validator;
 class UsuarioValido implements Regla
 {
+    // Revisa el formato del nombre de usuario
     public function validar(array $datos)
     {
         $usuario = $datos['usuario'];
