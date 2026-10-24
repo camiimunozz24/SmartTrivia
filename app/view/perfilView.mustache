@@ -1,0 +1,128 @@
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="/public/css/login.css">
+<link rel="stylesheet" href="/public/css/perfil.css">
+
+<div class="w3-content perfil" style="max-width:760px">
+    <div class="card-trivia-perfil w3-margin-top">
+
+        <!-- Cabecera de Perfil -->
+        <div class="perfil-cabecera">
+            {{#tiene_foto}}
+                <img src="/public/img/perfiles/{{foto_perfil}}" alt="Foto de {{nombre_completo}}" class="perfil-avatar">
+            {{/tiene_foto}}
+            {{^tiene_foto}}
+                <div class="perfil-avatar-placeholder">👤</div>
+            {{/tiene_foto}}
+
+            <div class="perfil-titulos">
+                <h2>{{nombre_completo}}</h2>
+                <p class="perfil-subtitulo">@{{usuario}}</p>
+                <span class="perfil-badge">
+                    {{#es_propio}}★ Mi Perfil{{/es_propio}}
+                    {{^es_propio}}Jugador{{/es_propio}}
+                    • Miembro desde {{fecha_registro}}
+                </span>
+            </div>
+        </div>
+
+        <!-- Estadísticas de Juego (Puntaje y Partidas) -->
+        <div class="perfil-stats">
+            <div class="stat-card stat-puntos">
+                <span class="stat-icono">🏆</span>
+                <div class="stat-info">
+                    <div class="stat-valor">{{puntaje_acumulado}} pts</div>
+                    <div class="stat-label">Puntaje en ranking</div>
+                </div>
+            </div>
+
+            <div class="stat-card stat-partidas">
+                <span class="stat-icono">🎮</span>
+                <div class="stat-info">
+                    <div class="stat-valor">{{partidas_jugadas}}</div>
+                    <div class="stat-label">Partidas realizadas</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección: Datos del Jugador -->
+        <section class="seccion">
+            <h4 class="seccion-titulo"><span class="seccion-icono">📋</span> Datos del jugador</h4>
+            <ul class="lista-datos">
+                <li class="dato-item">
+                    <div class="dato-label">Nombre de usuario</div>
+                    <div class="dato-valor">{{usuario}}</div>
+                </li>
+                <li class="dato-item">
+                    <div class="dato-label">Correo electrónico</div>
+                    <div class="dato-valor">{{email}}</div>
+                </li>
+                <li class="dato-item">
+                    <div class="dato-label">Fecha de nacimiento</div>
+                    <div class="dato-valor">{{fecha_nacimiento}} {{#edad}}({{edad}} años){{/edad}}</div>
+                </li>
+                <li class="dato-item">
+                    <div class="dato-label">Género</div>
+                    <div class="dato-valor">{{genero}}</div>
+                </li>
+                <li class="dato-item" style="grid-column: 1 / -1;">
+                    <div class="dato-label">Ciudad y País</div>
+                    <div class="dato-valor">📍 {{ciudad}}, {{pais}}</div>
+                </li>
+            </ul>
+        </section>
+
+        <!-- Sección: Ubicación en el mapa -->
+        <section class="seccion">
+            <h4 class="seccion-titulo"><span class="seccion-icono">🗺️</span> Ubicación</h4>
+            <p style="margin: 0 0 10px; color: #555; font-size: 14px;">Ubicación registrada: <strong>{{ciudad}}, {{pais}}</strong></p>
+            <div id="mapa-perfil"></div>
+        </section>
+
+        <!-- Sección: Código QR del perfil -->
+        <section class="seccion">
+            <h4 class="seccion-titulo"><span class="seccion-icono">📱</span> Código QR del perfil</h4>
+            <div class="qr-contenedor">
+                <img src="{{qr_url}}" alt="QR para acceder al perfil de {{usuario}}" class="qr-imagen">
+                <p class="qr-ayuda">
+                    Escaneá este código QR desde tu celular para acceder directamente a este perfil.
+                </p>
+                <small style="color:#888; word-break: break-all;">{{url_perfil}}</small>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", async () => {
+        const mapa = L.map("mapa-perfil").setView([-34.6037, -58.3816], 5);
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 18,
+            attribution: "&copy; OpenStreetMap contributors"
+        }).addTo(mapa);
+
+        const ciudad = "{{ciudad}}";
+        const pais = "{{pais}}";
+        const nombre = "{{nombre_completo}}";
+
+        if (ciudad || pais) {
+            try {
+                const query = encodeURIComponent(`${ciudad}, ${pais}`);
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`);
+                const data = await res.json();
+
+                if (data && data.length > 0) {
+                    const lat = parseFloat(data[0].lat);
+                    const lon = parseFloat(data[0].lon);
+                    mapa.setView([lat, lon], 12);
+                    L.marker([lat, lon]).addTo(mapa)
+                        .bindPopup(`<b>${nombre}</b><br>${ciudad}, ${pais}`)
+                        .openPopup();
+                }
+            } catch (e) {
+                console.log("No se pudo geocodificar la ubicación en el perfil:", e);
+            }
+        }
+    });
+</script>

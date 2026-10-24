@@ -4,8 +4,10 @@ namespace app;
 
 use app\controller\EquipoController;
 use app\controller\LoginController;
+use app\controller\PerfilController;
 use app\controller\RegistroController;
 use app\model\LoginModel;
+use app\model\PerfilModel;
 use app\model\RegistroModel;
 use app\validator\CamposObligatorios;
 use app\validator\EmailDisponible;
@@ -37,6 +39,11 @@ class Configuration
     public function getLoginController()
     {
         return new LoginController($this->getRender(), new LoginModel($this->getDatabase()));
+    }
+    // Crea el controlador de perfil: render(vistas), modelo(bd)
+    public function getPerfilController()
+    {
+        return new PerfilController($this->getRender(), new PerfilModel($this->getDatabase()));
     }
     // Crea el controlador del registro render(vistas), modelo(bd), validador(reglas)
     public function getRegistroController()

@@ -64,4 +64,3 @@ class LoginController
         Redirect::to('/login/show');
     }
 }
-

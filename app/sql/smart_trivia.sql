@@ -23,8 +23,9 @@ ALTER TABLE `usuarios`
     ADD COLUMN `ciudad` VARCHAR(100) NOT NULL,
     ADD COLUMN `foto_perfil` VARCHAR(255) NOT NULL;
 
-
-
-
-
-
+-- Usuario de prueba para testing / corrección
+-- Usuario: admin | Contraseña: admin1234
+INSERT INTO `usuarios`
+    (`usuario`, `email`, `password`, `nombre_completo`, `fecha_nacimiento`, `genero`, `pais`, `ciudad`, `foto_perfil`, `estado`)
+VALUES
+    ('admin', 'admin@smarttrivia.com', '$2y$10$HvNfcT0ODfNj/fWx4Hbh7eFSaduwZ8dAWQRcbHqEguhBjGfFJIUIi', 'Administrador SmartTrivia', '2000-01-01', 'Prefiero no cargarlo', 'Argentina', 'Buenos Aires', '', 'activo');

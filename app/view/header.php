@@ -26,23 +26,27 @@
             object-fit: cover;
             border: 2px solid #fff;
         }
+        body:has(.card-trivia-login) .btn-inicio,
+        body:has(.card-trivia-registro) .btn-inicio {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
 
 <div class="w3-bar w3-green barra-flex">
-    <a href="/" class="w3-bar-item w3-button">🏠 Inicio</a>
+    <a href="/equipo/show" class="w3-bar-item w3-button btn-inicio">🏠 Inicio</a>
 
     <?php if (isset($_SESSION['usuario_id'])): ?>
-        <span class="w3-bar-item usuario-header">
+        <a href="/perfil/show" class="w3-bar-item usuario-header w3-button" style="text-decoration:none;">
             <?php if (!empty($_SESSION['foto_perfil'])): ?>
                 <img src="/public/img/perfiles/<?= htmlspecialchars($_SESSION['foto_perfil']) ?>"
                      alt="Foto de perfil">
             <?php else: ?>
                 👤
             <?php endif; ?>
-            <?= htmlspecialchars($_SESSION['usuario']) ?>
-        </span>
+            Mi Perfil
+        </a>
         <a href="/login/logout" class="w3-bar-item w3-button">Cerrar sesión</a>
     <?php endif; ?>
 </div>
