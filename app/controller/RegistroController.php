@@ -7,6 +7,9 @@ use Request;
 
 class RegistroController
 {
+    // Segundos que hay que esperar para volver a pedir que se reenvíe el código
+    const SEGUNDOS_ENTRE_ENVIOS = 60;
+
     private $render;
     private $model;
     private $validador;
@@ -69,45 +72,102 @@ class RegistroController
         // Suma la foto al arreglo
         $datos['foto_perfil'] = $nombreFoto;
 
-        // Inserta al usuario y devuelve el token
-        $token = $this->model->registrar($datos);
+        // Inserta al usuario y devuelve el código de verificación
+        $codigo = $this->model->registrar($datos);
 
-        // Si se genera el token, envia el mail de validación
-        if ($token) {
+        // Guardamos en sesión para qué mail estamos verificando
+        $_SESSION['email_pendiente'] = $datos['email'];
+        $_SESSION['ultimo_envio'] = time();
 
-            \Mailer::enviarValidacion($datos['email'], $datos['usuario'], $token);
+        // Envía el mail con el código. Si falla, se avisa en la pantalla siguiente
+        $enviado = \Mailer::enviarCodigo($datos['email'], $datos['usuario'], $codigo);
+        if (!$enviado) {
+            $_SESSION['verificacion_error'] = "No pudimos enviar el mail. Probá con \"Reenviar código\" en un momento.";
         }
 
-
-        //Redirect::to('/?registro_ok=1');
-        // Dirige a pantalla de revisar correo
+        // Dirige a la pantalla donde se escribe el código
         Redirect::to('/registro/verificarEmail');
     }
 
-    // Muestra el aviso de envío de mail
+    // Muestra la pantalla donde se escribe el código que llegó por mail
     public function verificarEmail()
     {
-        $this->render->renderiza("verificarEmail");
-    }
-
-    public function validarToken()
-    {
-        // Lee el token
-        $token = $_GET['token'] ?? null;
-
-        if ($token) {
-            // El modelo busca el token y activa la cuenta
-            $resultado = $this->model->validarCuenta($token);
-
-            if ($resultado) {
-               //exito, redirigimos a login.
-                Redirect::to('/login/show');
-                return;
-            }
+        if (!isset($_SESSION['email_pendiente'])) {
+            Redirect::to('/registro');
         }
 
-        // Si el token falló o no vino, lo mandamos directo al login con el error de verificación
-        Redirect::to('/login/show?error_verificacion=1');
+        $data = [
+            "email" => $_SESSION['email_pendiente'],
+            "error" => $_SESSION['verificacion_error'] ?? null,
+            "aviso" => $_SESSION['verificacion_aviso'] ?? null,
+        ];
+        unset($_SESSION['verificacion_error'], $_SESSION['verificacion_aviso']);
+
+        $this->render->renderiza("verificarEmail", $data);
+    }
+
+    // Recibe el código escrito en el formulario y lo valida
+    public function validarCodigo()
+    {
+        $email = $_SESSION['email_pendiente'] ?? null;
+        if ($email === null) {
+            Redirect::to('/registro');
+        }
+
+        // Pasamos a mayúsculas y dejamos solo letras y números (por si escriben "k7m2 qxpa")
+        $codigo = preg_replace('/[^A-Z0-9]/', '', strtoupper(Request::post('codigo', '')));
+
+        // El modelo compara el código y devuelve el resultado
+        $resultado = $this->model->validarCodigo($email, $codigo);
+
+        if ($resultado === 'ok' || $resultado === 'ya_activo') {
+            // Cuenta activada: limpiamos la sesión y vamos al login
+            unset($_SESSION['email_pendiente'], $_SESSION['ultimo_envio']);
+            Redirect::to('/login/show?registro_ok=1');
+            return;
+        }
+
+        if ($resultado === 'inexistente') {
+            unset($_SESSION['email_pendiente']);
+            Redirect::to('/registro');
+            return;
+        }
+
+        $_SESSION['verificacion_error'] = "El código es incorrecto. Revisalo e intentá de nuevo.";
+        Redirect::to('/registro/verificarEmail');
+    }
+
+    // Vuelve a mandar por mail el MISMO código (no se genera uno nuevo)
+    public function reenviarCodigo()
+    {
+        $email = $_SESSION['email_pendiente'] ?? null;
+        if ($email === null) {
+            Redirect::to('/registro');
+        }
+
+        // Para que no se pueda usar para mandar mails sin parar
+        $espera = self::SEGUNDOS_ENTRE_ENVIOS - (time() - ($_SESSION['ultimo_envio'] ?? 0));
+        if ($espera > 0) {
+            $_SESSION['verificacion_error'] = "Esperá $espera segundos antes de pedir que te lo mandemos de nuevo.";
+            Redirect::to('/registro/verificarEmail');
+        }
+
+        $pendiente = $this->model->obtenerPendiente($email);
+        if ($pendiente === null) {
+            // La cuenta ya está activa o no existe
+            unset($_SESSION['email_pendiente']);
+            Redirect::to('/login/show');
+        }
+
+        $_SESSION['ultimo_envio'] = time();
+
+        if (\Mailer::enviarCodigo($email, $pendiente['usuario'], $pendiente['token_validacion'])) {
+            $_SESSION['verificacion_aviso'] = "Te mandamos el código de nuevo. Revisá también la carpeta de spam.";
+        } else {
+            $_SESSION['verificacion_error'] = "No pudimos enviar el mail. Intentá de nuevo en un momento.";
+        }
+
+        Redirect::to('/registro/verificarEmail');
     }
 
     private function guardarFoto($foto)
