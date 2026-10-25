@@ -1,0 +1,59 @@
+<link rel="stylesheet" href="/public/css/login.css">
+<link rel="stylesheet" href="/public/css/perfil.css">
+
+<div class="w3-content perfil" style="max-width:760px">
+    <div class="card-trivia-perfil w3-margin-top">
+
+        <!-- Cabecera del Panel Admin -->
+        <div class="perfil-cabecera">
+            <div class="perfil-avatar-placeholder">⚙️</div>
+
+            <div class="perfil-titulos">
+                <h2>Panel de Administración</h2>
+                <p class="perfil-subtitulo">SmartTrivia Admin System</p>
+                <span class="perfil-badge" style="background-color: #d9534f; color: white;">
+                    ★ Zona Restringida
+                </span>
+            </div>
+        </div>
+
+        <!-- Estadísticas Rápidas de Prueba -->
+        <div class="perfil-stats">
+            <div class="stat-card stat-puntos">
+                <span class="stat-icono">👥</span>
+                <div class="stat-info">
+                    <div class="stat-valor">Admin</div>
+                    <div class="stat-label">Rol actual</div>
+                </div>
+            </div>
+
+            <div class="stat-card stat-partidas">
+                <span class="stat-icono">🔒</span>
+                <div class="stat-info">
+                    <div class="stat-valor">Activo</div>
+                    <div class="stat-label">Estado de sesión</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección Principal -->
+        <section class="seccion">
+            <h4 class="seccion-titulo"><span class="seccion-icono">🛠️</span> Configuración del Sistema</h4>
+            <p style="margin: 0 0 15px; color: #555; font-size: 14px;">
+                ¡Bienvenido al panel de administración!
+            </p>
+
+            <ul class="lista-datos">
+                <li class="dato-item">
+                    <div class="dato-label">Usuario Conectado</div>
+                    <div class="dato-valor">@{{usuario}}</div>
+                </li>
+                <li class="dato-item">
+                    <div class="dato-label">Permiso Asignado</div>
+                    <div class="dato-valor">{{rol}}</div>
+                </li>
+            </ul>
+        </section>
+
+    </div>
+</div>

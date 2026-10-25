@@ -21,10 +21,10 @@ class RegistroController
     // Muestra el formulario
     public function show()
     {
-        // Si hay una sesión dirige al home
-        if (isset($_SESSION['usuario_id'])) {
-            Redirect::to('/equipo/show');
-        }
+//        // Si hay una sesión dirige al home
+//        if (isset($_SESSION['usuario_id'])) {
+//            Redirect::to('/equipo/show');
+//        }
 
         $data = [
             "error" => $_SESSION['registro_error'] ?? null, // Si hay error lo muestra

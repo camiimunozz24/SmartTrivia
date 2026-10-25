@@ -18,9 +18,9 @@ class LoginController
     /* Muestra el formulario */
     public function show()
     {
-        if (isset($_SESSION['usuario_id'])) {
-            Redirect::to('/equipo/show'); // Si hay una sesión dirige al home
-        }
+//        if (isset($_SESSION['usuario_id'])) {
+//            Redirect::to('/equipo/show'); // Si hay una sesión dirige al home
+//        }
 
         $error = null;
         if (Request::get('login_error') !== null) { // Usuario o contraseña incorrectos
@@ -55,11 +55,13 @@ class LoginController
         $_SESSION['usuario_id'] = $usuario['id'];
         $_SESSION['usuario'] = $usuario['usuario'];
         $_SESSION['foto_perfil'] = $usuario['foto_perfil'];
-        Redirect::toIndex(); // Dirige al home
+        $_SESSION['rol']        = $usuario['rol'];
+        Redirect::to('/equipo');
     }
 
     public function logout() {
         // Borra los datos de la sesión y dirige al login
+        $_SESSION = [];          // limpia todas las variables de sesión
         session_destroy();
         Redirect::to('/login/show');
     }

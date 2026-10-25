@@ -14,7 +14,7 @@ class LoginModel
     public function autenticar($usuario, $password)
     {
         // Consulta SQL
-        $sql = "SELECT id, usuario, password, estado, foto_perfil FROM usuarios WHERE usuario = ? OR email = ?";
+        $sql = "SELECT id, usuario, password, estado, foto_perfil, rol FROM usuarios WHERE usuario = ? OR email = ?";
         // Ejecuta la consulta y trae la fila o null
         $fila = $this->database->queryOne($sql, [$usuario, $usuario]);
 
@@ -26,7 +26,8 @@ class LoginModel
         return ["id" => $fila["id"],
                 "usuario" => $fila["usuario"],
                 "estado" => $fila["estado"],
-                "foto_perfil" => $fila["foto_perfil"]];
+                "foto_perfil" => $fila["foto_perfil"],
+                "rol" => $fila["rol"]];
     }
 
 }

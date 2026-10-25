@@ -13,9 +13,10 @@ class EquipoController
 
     public function show()
     {
-        if (!isset($_SESSION['usuario_id'])) {
-            Redirect::to('/login/show');
-        }
+//        if (!isset($_SESSION['usuario_id'])) {
+//            Redirect::to('/login/show');
+//        }
+
 
         $data = [
             "equipo" => "SmartDevs",

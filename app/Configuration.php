@@ -1,7 +1,8 @@
 <?php
 
 namespace app;
-
+use app\controller\Error404Controller;
+use app\controller\AdminController;
 use app\controller\EquipoController;
 use app\controller\LoginController;
 use app\controller\PerfilController;
@@ -25,6 +26,7 @@ use app\validator\Validador;
 use MustacheRender;
 use MyDatabase;
 use Router;
+
 // PHP encuentra solo el archivo de cada clase cuando se la usa
 require_once("helper/Autoloader.php");
 
@@ -52,6 +54,16 @@ class Configuration
 
         return new RegistroController($this->getRender(), $model, $this->getRegistroValidador($model));
     }
+
+    public function getAdminController()
+    {
+        return new AdminController($this->getRender());
+    }
+
+    public function getError404Controller(){
+        return new Error404Controller($this->getRender());
+    }
+
     // Arma el validador del registro con las reglas. Se ejecutan en orden y frenan en la primera que falla
     private function getRegistroValidador($model)
     {
