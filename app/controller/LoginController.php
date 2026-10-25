@@ -46,7 +46,10 @@ class LoginController
             return;
         }
         if ($usuario['estado'] !== 'activo') { // Mail sin confirmar
-            Redirect::to('/login/show?error_verificacion=1');
+            // La contraseña era correcta pero falta verificar el mail:
+            // lo mandamos a la pantalla del código (desde ahí puede pedir que se lo reenvíen).
+            $_SESSION['email_pendiente'] = $usuario['email'];
+            Redirect::to('/registro/verificarEmail');
             return;
         }
         // Regenera el id de la sesión para proteger de robos

@@ -1,14 +1,39 @@
 <link rel="stylesheet" href="/public/css/login.css">
 <div class="w3-content registro" style="max-width:450px">
-    <div class="card-trivia-registro w3-margin-top w3-center">
-        <h2>¡Revisá tu casilla de correo!</h2>
+    <div class="card-trivia-registro w3-margin-top">
+        <h2 class="w3-center">Verificá tu correo</h2>
 
-        <div class="w3-panel w3-pale-blue w3-leftbar w3-border-blue w3-left-align">
-            <p>Te enviamos un correo electrónico con un enlace de activación. Hacé clic en él para activar tu cuenta y poder iniciar sesión en <strong>SmartTrivia</strong>.</p>
+        <div class="w3-panel w3-pale-blue w3-leftbar w3-border-blue">
+            <p>Te enviamos un código de 8 caracteres a <strong>{{email}}</strong>. Ingresalo para activar tu cuenta en <strong>SmartTrivia</strong>.</p>
         </div>
 
-        <p class="w3-margin-top">
-            <a href="/" class="w3-button w3-blue w3-block">Volver al inicio de sesión</a>
-        </p>
+        {{#error}}
+            <div class="w3-panel w3-pale-red w3-leftbar w3-border-red">
+                <p>{{error}}</p>
+            </div>
+        {{/error}}
+
+        {{#aviso}}
+            <div class="w3-panel w3-pale-green w3-leftbar w3-border-green">
+                <p>{{aviso}}</p>
+            </div>
+        {{/aviso}}
+
+        <form action="/registro/validarCodigo" method="post">
+            <p>
+                <label for="codigo">Código de verificación</label>
+                <input class="w3-input w3-border w3-center" type="text" id="codigo" name="codigo"
+                       maxlength="8" minlength="8" autocomplete="off" autocapitalize="characters"
+                       spellcheck="false" placeholder="XXXXXXXX" required autofocus
+                       style="font-size:28px;letter-spacing:8px;text-transform:uppercase;">
+            </p>
+            <button class="w3-button w3-green w3-block" type="submit">Verificar</button>
+        </form>
+
+        <form action="/registro/reenviarCodigo" method="post" class="w3-margin-top">
+            <button class="w3-button w3-blue w3-block" type="submit">Reenviar código</button>
+        </form>
+
+        <p class="w3-center w3-margin-top"><a href="/">Volver al inicio de sesión</a></p>
     </div>
 </div>
