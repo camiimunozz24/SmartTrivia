@@ -1,0 +1,26 @@
+<link rel="stylesheet" href="/public/css/partida.css">
+
+<div class="w3-content" style="max-width:700px">
+    <div class="partida-card w3-margin-top" style="--color-categoria: #546E7A;">
+
+        <div class="partida-cabecera">
+            {{#sin_preguntas}}<span>⚠️ No hay preguntas disponibles</span>{{/sin_preguntas}}
+            {{^sin_preguntas}}<span>❌ Fin de la partida</span>{{/sin_preguntas}}
+        </div>
+
+        <div class="partida-cuerpo w3-center">
+            {{^sin_preguntas}}
+                <p class="resultado-label">La pregunta era:</p>
+                <p>{{pregunta}}</p>
+                <p class="resultado-label">La respuesta correcta era:</p>
+                <p class="resultado-correcta">{{correcta}}</p>
+            {{/sin_preguntas}}
+
+            <p class="resultado-puntos">Ganaste {{puntaje}} {{puntos_texto}}</p>
+
+            <a href="/partida/iniciar" class="w3-button w3-green w3-round">🎮 Jugar de nuevo</a>
+            <a href="/home" class="w3-button w3-light-grey w3-round">🏠 Inicio</a>
+        </div>
+
+    </div>
+</div>

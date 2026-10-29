@@ -1,0 +1,32 @@
+<link rel="stylesheet" href="/public/css/home.css">
+
+<div class="w3-content home" style="max-width:760px">
+
+    <!-- Bienvenida y botón principal -->
+    <div class="home-card home-hero w3-margin-top">
+        <div class="home-icono">🧠</div>
+        <h2>¡Hola{{#usuario}}, @{{usuario}}{{/usuario}}!</h2>
+        <p class="home-subtitulo">Elegí una categoría y demostrá cuánto sabés.</p>
+        <a href="/partida/iniciar" class="w3-button w3-green w3-large w3-round-large home-btn-jugar">Jugar</a>
+    </div>
+
+    <!-- Cómo se juega -->
+    <div class="home-card">
+        <h4 class="home-titulo">¿Cómo se juega?</h4>
+        <div class="home-pasos">
+            <div class="home-paso">
+                <span class="home-paso-num">1</span>
+                <p>Elegí una categoría</p>
+            </div>
+            <div class="home-paso">
+                <span class="home-paso-num">2</span>
+                <p>Respondé: cada acierto suma 1 punto</p>
+            </div>
+            <div class="home-paso">
+                <span class="home-paso-num">3</span>
+                <p>Si te equivocás, la partida termina</p>
+            </div>
+        </div>
+    </div>
+
+</div>

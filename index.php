@@ -14,7 +14,7 @@ $method     = Request::get("method", null);
 // 1. Si entra a la raíz de la app (sin controlador en la URL)
 if ($controller === null) {
     if (isset($_SESSION['usuario_id'])) {
-        Redirect::to('/equipo'); // Si está logueado, va al home
+        Redirect::to('/home'); // Si está logueado, va al home
     } else {
         Redirect::to('/login');  // Si no está logueado, va al login
     }
@@ -34,7 +34,7 @@ $permiso = $routes[$controller];
 
 // 3. Ruta pública (login/registro) con sesión ya iniciada → redirigir al home (excepto si quiere salir)
 if ($permiso === 'publica' && isset($_SESSION['usuario_id']) && $method !== 'logout') {
-    Redirect::to('/equipo');
+    Redirect::to('/home');
     exit;
 }
 
@@ -54,7 +54,7 @@ $rolesPermitidos = [
 if (isset($rolesPermitidos[$permiso])) {
     $rolActual = $_SESSION['rol'] ?? '';
     if (!in_array($rolActual, $rolesPermitidos[$permiso])) {
-        Redirect::to('/equipo');
+        Redirect::to('/home');
         exit;
     }
 }

@@ -1,0 +1,16 @@
+<link rel="stylesheet" href="/public/css/partida.css">
+
+<div class="w3-content" style="max-width:700px">
+    <div class="w3-panel w3-card w3-white w3-padding-24 w3-margin-top">
+        <h2 class="w3-center">Elegí una categoría</h2>
+
+        <form method="post" action="/partida/elegir" class="categorias-grid">
+            {{#categorias}}
+                <button type="submit" name="categoria" value="{{id}}" class="categoria-btn"
+                        style="background-color: {{color}};">
+                    {{nombre}}
+                </button>
+            {{/categorias}}
+        </form>
+    </div>
+</div>

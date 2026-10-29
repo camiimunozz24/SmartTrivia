@@ -3,10 +3,12 @@
 namespace app;
 use app\controller\Error404Controller;
 use app\controller\AdminController;
-use app\controller\EquipoController;
+use app\controller\HomeController;
 use app\controller\LoginController;
 use app\controller\PerfilController;
 use app\controller\RegistroController;
+use app\controller\PartidaController;
+use app\model\PartidaModel;
 use app\model\LoginModel;
 use app\model\PerfilModel;
 use app\model\RegistroModel;
@@ -32,15 +34,20 @@ require_once("helper/Autoloader.php");
 
 class Configuration
 {
-    // Crea el controlador de equipo: render(vistas)
-    public function getEquipoController()
+    // Crea el controlador del home: render(vistas)
+    public function getHomeController()
     {
-        return new EquipoController($this->getRender());
+        return new HomeController($this->getRender());
     }
     // Crea el controlador del login render(vistas), modelo(bd)
     public function getLoginController()
     {
         return new LoginController($this->getRender(), new LoginModel($this->getDatabase()));
+    }
+    // Crea el controlador de la partida: render(vistas), modelo(bd)
+    public function getPartidaController()
+    {
+        return new PartidaController($this->getRender(), new PartidaModel($this->getDatabase()));
     }
     // Crea el controlador de perfil: render(vistas), modelo(bd)
     public function getPerfilController()

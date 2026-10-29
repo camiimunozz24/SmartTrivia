@@ -35,7 +35,7 @@
 <body>
 
 <div class="w3-bar w3-green barra-flex">
-    <a href="/equipo/show" class="w3-bar-item w3-button btn-inicio">🏠 Inicio</a>
+    <a href="/home/show" class="w3-bar-item w3-button btn-inicio">🏠 Inicio</a>
 
     <?php if (isset($_SESSION['usuario_id'])): ?>
         <a href="/perfil/show" class="w3-bar-item usuario-header w3-button" style="text-decoration:none;">

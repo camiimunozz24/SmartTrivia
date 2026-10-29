@@ -19,7 +19,7 @@ class LoginController
     public function show()
     {
 //        if (isset($_SESSION['usuario_id'])) {
-//            Redirect::to('/equipo/show'); // Si hay una sesión dirige al home
+//            Redirect::to('/home/show'); // Si hay una sesión dirige al home
 //        }
 
         $error = null;
@@ -59,7 +59,7 @@ class LoginController
         $_SESSION['usuario'] = $usuario['usuario'];
         $_SESSION['foto_perfil'] = $usuario['foto_perfil'];
         $_SESSION['rol']        = $usuario['rol'];
-        Redirect::to('/equipo');
+        Redirect::to('/home');
     }
 
     public function logout() {

@@ -39,3 +39,12 @@ CREATE TABLE reportes(
     FOREIGN KEY (pregunta_id) REFERENCES preguntas(id),
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 );
+
+CREATE TABLE preguntas_vistas(
+     id INT AUTO_INCREMENT PRIMARY KEY,
+     usuario_id INT NOT NULL,
+     pregunta_id INT NOT NULL,
+     UNIQUE (usuario_id, pregunta_id),
+     FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+     FOREIGN KEY (pregunta_id) REFERENCES preguntas(id) ON DELETE CASCADE
+);
