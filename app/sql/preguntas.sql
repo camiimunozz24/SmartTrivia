@@ -27,7 +27,6 @@ CREATE TABLE respuestas(
     es_correcto TINYINT(1) NOT NULL DEFAULT 0,
     FOREIGN KEY (pregunta_id) REFERENCES preguntas(id) ON DELETE CASCADE
 );
-);
 
 CREATE TABLE reportes(
     id INT AUTO_INCREMENT PRIMARY KEY,
