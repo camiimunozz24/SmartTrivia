@@ -11,6 +11,7 @@ $routes = require("config/routes.php");
 $controller = Request::get("controller", null);
 $method     = Request::get("method", null);
 
+
 // 1. Si entra a la raíz de la app (sin controlador en la URL)
 if ($controller === null) {
     if (isset($_SESSION['usuario_id'])) {
@@ -20,7 +21,6 @@ if ($controller === null) {
     }
     exit;
 }
-
 // 2. Si el controlador NO existe en el mapa de rutas, mostramos el Error 404 limpio
 if (!array_key_exists($controller, $routes)) {
     $configuration = new Configuration();
@@ -29,28 +29,46 @@ if (!array_key_exists($controller, $routes)) {
     exit;
 }
 
-// Si se especificó un controlador existente, buscamos su permiso en el mapa
-$permiso = $routes[$controller];
+// Resolución del permiso
+
+$routeConfig = $routes[$controller];
+if (is_array($routeConfig)) {
+
+    $methodEfectivo = $method ?? 'show';
+
+    if (array_key_exists($methodEfectivo, $routeConfig)) {
+        $permiso = $routeConfig[$methodEfectivo];
+    } elseif (array_key_exists('*', $routeConfig)) {
+        $permiso = $routeConfig['*'];
+    } else {
+       // "si no sé qué permiso aplicar, bloqueo todo".
+        $permiso = 'admin';
+    }
+} else {
+    $permiso = $routeConfig;
+
+}
+
 
 // 3. Ruta pública (login/registro) con sesión ya iniciada → redirigir al home (excepto si quiere salir)
 if ($permiso === 'publica' && isset($_SESSION['usuario_id']) && $method !== 'logout') {
-    Redirect::to('/home');
-    exit;
+    // Si es perfil público de otro usuario, lo dejamos pasar aunque esté logueado
+    if ($controller !== 'perfil') {
+        Redirect::to('/home');
+        exit;
+    }
 }
-
 // 4. Ruta protegida sin sesión iniciada → redirigir AL LOGIN
 if ($permiso !== 'publica' && !isset($_SESSION['usuario_id'])) {
     Redirect::to('/login');
     exit;
 }
-
 // 5. Validación centralizada de roles y jerarquías
 $rolesPermitidos = [
-    'admin'   => ['admin'],                    // Solo administradores
-    'editor'  => ['editor', 'admin'],          // Editores y administradores
-    'usuario' => ['usuario', 'editor', 'admin']// Cualquier rol con sesión activa
+    'admin'   => ['admin'],                     // Solo administradores
+    'editor'  => ['editor', 'admin'],           // Editores y administradores
+    'usuario' => ['usuario', 'editor', 'admin'] // Cualquier rol con sesión activa
 ];
-
 if (isset($rolesPermitidos[$permiso])) {
     $rolActual = $_SESSION['rol'] ?? '';
     if (!in_array($rolActual, $rolesPermitidos[$permiso])) {
@@ -58,6 +76,8 @@ if (isset($rolesPermitidos[$permiso])) {
         exit;
     }
 }
+
+
 // Si pasó todas las validaciones de seguridad, despachamos el controlador y método correspondiente
 $configuration = new Configuration();
 $router = $configuration->getRouter();
