@@ -7,7 +7,7 @@ class MyDatabase
     public function __construct($host, $user, $pass, $db)
     {
         // Conexion a la bd
-        $this->conexion = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
+        $this->conexion = new PDO("mysql:host=$host;dbname=$db;charset=utf8mb4", $user, $pass);
     }
     // Devuelve una sola fila o null
     public function queryOne(string $sql, array $params = [])
