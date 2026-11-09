@@ -16,6 +16,18 @@
 .partida-cuerpo { padding: 24px; }
 .partida-enunciado { margin: 0 0 22px; font-size: 1.35rem; line-height: 1.4; }
 
+/* Cronómetro */
+.reloj { padding: 16px 24px 0; }
+.reloj-datos { display: flex; justify-content: space-between; font-weight: 700; color: #475569; margin-bottom: 6px; font-size: .95rem; }
+.reloj-numero { font-size: 1.4rem; font-variant-numeric: tabular-nums; color: #16a34a; transition: color .3s; }
+.reloj-barra { height: 12px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
+.reloj-relleno { height: 100%; width: 100%; background: #22c55e; border-radius: 999px; transition: width .25s linear, background .3s; }
+.reloj.alerta .reloj-numero { color: #f59e0b; }
+.reloj.alerta .reloj-relleno { background: #f59e0b; }
+.reloj.peligro .reloj-numero { color: #dc2626; animation: latido .6s ease-in-out infinite; }
+.reloj.peligro .reloj-relleno { background: #dc2626; }
+@keyframes latido { 50% { transform: scale(1.18); } }
+
 /* Respuestas */
 .respuesta-btn {
     display: flex; align-items: center; gap: 14px; width: 100%; margin-bottom: 12px; padding: 14px 16px;

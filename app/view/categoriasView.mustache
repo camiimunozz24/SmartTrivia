@@ -2,11 +2,16 @@
 
 <div class="partida-wrap">
     <h2 class="categorias-titulo">Elegí una categoría</h2>
-    <p class="categorias-sub">¿En cuál te animás a jugar?</p>
+    <p class="categorias-sub">Tenés {{limite_segundos}} segundos por pregunta. ¡Suerte!</p>
+
+    {{#sin_preguntas}}
+        <div class="aviso-error">Esa categoría todavía no tiene preguntas. Probá con otra.</div>
+    {{/sin_preguntas}}
 
     <form method="post" action="/partida/elegir" class="categorias-grid">
         {{#categorias}}
             <button type="submit" name="categoria" value="{{id}}" class="categoria-btn" style="background-color: {{color}};">
+                <span class="categoria-icono">{{icono}}</span>
                 {{nombre}}
             </button>
         {{/categorias}}

@@ -8,10 +8,16 @@
             <span class="chip-puntaje">⭐ {{puntaje}}</span>
         </div>
 
+        <div class="reloj" id="reloj" data-restante="{{restante_ms}}" data-limite="{{limite_segundos}}">
+            <div class="reloj-datos"><span>⏱️ Tiempo</span><span class="reloj-numero" id="reloj-numero">{{restante_segundos}}</span></div>
+            <div class="reloj-barra"><div class="reloj-relleno" id="reloj-relleno"></div></div>
+        </div>
+
         <div class="partida-cuerpo">
             <h3 class="partida-enunciado">{{enunciado}}</h3>
 
             <form method="post" action="/partida/responder" id="form-respuesta">
+                <input type="hidden" name="token" value="{{token}}">
                 {{#respuestas}}
                     <button type="submit" name="respuesta" value="{{id}}" class="respuesta-btn">
                         <span class="respuesta-letra">{{letra}}</span>
@@ -23,3 +29,58 @@
 
     </div>
 </div>
+
+<script>
+    // OJO: este reloj es SOLO visual. El tiempo real lo mide el servidor,
+    // aunque se modifique esta página la partida termina igual a los {{limite_segundos}} segundos.
+    (function () {
+        var reloj = document.getElementById('reloj');
+        var numero = document.getElementById('reloj-numero');
+        var relleno = document.getElementById('reloj-relleno');
+        var form = document.getElementById('form-respuesta');
+        var limite = parseFloat(reloj.dataset.limite) * 1000;
+        var fin = Date.now() + parseInt(reloj.dataset.restante, 10);
+        var enviado = false;
+
+        function enviar(boton) {
+            if (enviado) { return; }
+            enviado = true;
+            var botones = form.querySelectorAll('button');
+            for (var i = 0; i < botones.length; i++) {
+                botones[i].disabled = true; // Evita doble clic (el servidor igual acepta una sola respuesta)
+            }
+            if (boton) { // Un botón deshabilitado no se envía, así que guardamos la elección aparte
+                boton.classList.add('elegida');
+                var h = document.createElement('input');
+                h.type = 'hidden'; h.name = 'respuesta'; h.value = boton.value;
+                form.appendChild(h);
+            }
+            form.submit();
+        }
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            enviar(e.submitter || null);
+        });
+
+        document.addEventListener('keydown', function (e) {
+            var i = 'abcd'.indexOf(e.key.toLowerCase());
+            var botones = form.querySelectorAll('button');
+            if (e.key.length === 1 && i !== -1 && botones[i]) { enviar(botones[i]); }
+        });
+
+        function tick() {
+            var resto = Math.max(0, fin - Date.now());
+            numero.textContent = Math.ceil(resto / 1000);
+            relleno.style.width = (resto / limite * 100) + '%';
+            reloj.classList.toggle('alerta', resto <= 10000 && resto > 5000);
+            reloj.classList.toggle('peligro', resto <= 5000);
+            if (resto <= 0 && !enviado) { // Se acabó: se manda sin respuesta y el servidor decide
+                enviar(null);
+                return;
+            }
+            if (!enviado) { requestAnimationFrame(tick); }
+        }
+        tick();
+    })();
+</script>

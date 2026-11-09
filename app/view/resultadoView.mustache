@@ -5,18 +5,18 @@
         <div class="partida-cabecera"><span>Fin de la partida</span></div>
 
         <div class="partida-cuerpo" style="text-align:center;">
-            {{#sin_preguntas}}
-                <div class="resultado-icono">🏁</div>
-                <h2 class="resultado-titulo">No hay más preguntas</h2>
-            {{/sin_preguntas}}
-            {{^sin_preguntas}}
-                <div class="resultado-icono">❌</div>
-                <h2 class="resultado-titulo">Respuesta incorrecta</h2>
+            <div class="resultado-icono">{{icono}}</div>
+            <h2 class="resultado-titulo">{{titulo}}</h2>
+
+            {{#motivo_tiempo}}<p class="resultado-texto">Tenías {{limite_segundos}} segundos para responder y se terminaron.</p>{{/motivo_tiempo}}
+            {{#motivo_sin_preguntas}}<p class="resultado-texto">¡Respondiste todas las preguntas de la categoría! Impresionante.</p>{{/motivo_sin_preguntas}}
+
+            {{#mostrar_correcta}}
                 <p class="resultado-label">La pregunta era:</p>
                 <p>{{pregunta}}</p>
                 <p class="resultado-label">La respuesta correcta era:</p>
                 <div class="resultado-correcta">{{correcta}}</div>
-            {{/sin_preguntas}}
+            {{/mostrar_correcta}}
 
             <p class="resultado-puntos">Sumaste {{puntaje}} {{puntos_texto}}</p>
 

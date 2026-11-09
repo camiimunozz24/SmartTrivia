@@ -37,7 +37,7 @@ class Configuration
     // Crea el controlador del home: render(vistas)
     public function getHomeController()
     {
-        return new HomeController($this->getRender());
+        return new HomeController($this->getRender(), new PartidaModel($this->getDatabase()));
     }
     // Crea el controlador del login render(vistas), modelo(bd)
     public function getLoginController()
