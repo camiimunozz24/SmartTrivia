@@ -1,18 +1,17 @@
 <link rel="stylesheet" href="/public/css/partida.css">
 
-<div class="w3-content" style="max-width:700px">
-    <!-- El color de la categoría se pasa como variable CSS y pinta la cabecera y el borde de la tarjeta -->
-    <div class="partida-card w3-margin-top" style="--color-categoria: {{color}};">
+<div class="partida-wrap">
+    <div class="partida-card" style="--color-categoria: {{color}};">
 
         <div class="partida-cabecera">
             <span>{{categoria}}</span>
-            <span>⭐ {{puntaje}}</span>
+            <span class="chip-puntaje">⭐ {{puntaje}}</span>
         </div>
 
         <div class="partida-cuerpo">
             <h3 class="partida-enunciado">{{enunciado}}</h3>
 
-            <form method="post" action="/partida/responder">
+            <form method="post" action="/partida/responder" id="form-respuesta">
                 {{#respuestas}}
                     <button type="submit" name="respuesta" value="{{id}}" class="respuesta-btn">
                         <span class="respuesta-letra">{{letra}}</span>

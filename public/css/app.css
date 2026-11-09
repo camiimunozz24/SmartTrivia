@@ -1,0 +1,81 @@
+/* ESTILOS GENERALES DE SMARTTRIVIA: variables, barra de navegación y pie */
+:root {
+    --verde: #16a34a;
+    --verde-oscuro: #15803d;
+    --violeta: #4f46e5;
+    --fondo: #f1f5f9;
+    --texto: #1e293b;
+    --texto-suave: #64748b;
+    --borde: #e2e8f0;
+    --sombra: 0 4px 6px -1px rgb(0 0 0 / .06), 0 10px 15px -3px rgb(0 0 0 / .08);
+    --radio: 14px;
+}
+
+body {
+    margin: 0;
+    background: var(--fondo);
+    color: var(--texto);
+    font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+}
+
+.contenido { min-height: calc(100vh - 140px); padding: 12px 16px 24px; }
+
+/* ---------- Barra de navegación ---------- */
+.nav {
+    position: sticky; top: 0; z-index: 2000;
+    background: linear-gradient(135deg, #07183a 0%, #0b2d63 100%);
+    border-bottom: 1px solid rgb(100 181 246 / .25);
+    box-shadow: 0 2px 12px rgb(0 0 0 / .35);
+}
+.nav-interior {
+    max-width: 980px; margin: 0 auto; padding: 0 16px;
+    display: flex; align-items: center; gap: 16px; min-height: 60px; position: relative;
+}
+.nav-marca {
+    color: #fff; font-size: 1.35rem; font-weight: 800; letter-spacing: .3px; text-decoration: none;
+}
+.nav-marca span { color: #86efac; }
+.nav-links { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+.nav-link, .nav-salir {
+    color: #e0e7ff; text-decoration: none; padding: 8px 14px; border-radius: 999px;
+    font-weight: 600; font-size: .95rem; transition: background .15s, color .15s;
+}
+.nav-link:hover, .nav-salir:hover { background: rgb(255 255 255 / .15); color: #fff; }
+.nav-link.activo { background: rgb(255 255 255 / .22); color: #fff; }
+.nav-separador { width: 1px; height: 26px; background: rgb(255 255 255 / .25); margin: 0 8px; }
+.nav-perfil {
+    display: flex; align-items: center; gap: 8px; color: #fff; text-decoration: none;
+    padding: 4px 12px 4px 4px; border-radius: 999px; background: rgb(255 255 255 / .12); font-weight: 600; font-size: .92rem;
+}
+.nav-perfil:hover, .nav-perfil.activo { background: rgb(255 255 255 / .25); }
+.nav-perfil img, .nav-avatar {
+    width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid #fff;
+    display: inline-flex; align-items: center; justify-content: center; background: #1e5aa8; font-size: 16px;
+}
+.nav-salir { color: #fecaca; }
+.nav-salir:hover { background: #dc2626; color: #fff; }
+.nav-boton {
+    background: #22c55e; color: #fff; text-decoration: none; padding: 8px 18px; border-radius: 999px; font-weight: 700;
+}
+.nav-boton:hover { background: #16a34a; }
+
+.nav-toggle { display: none; }
+.nav-hamburguesa { display: none; margin-left: auto; cursor: pointer; padding: 10px; }
+.nav-hamburguesa span { display: block; width: 24px; height: 3px; background: #fff; margin: 4px 0; border-radius: 2px; transition: .2s; }
+
+@media (max-width: 720px) {
+    .nav-hamburguesa { display: block; }
+    .nav-links {
+        display: none; position: absolute; top: 100%; left: 0; right: 0; margin: 0;
+        flex-direction: column; align-items: stretch; gap: 4px; padding: 12px 16px 16px;
+        background: #0a2150; box-shadow: 0 10px 20px rgb(0 0 0 / .25);
+    }
+    .nav-toggle:checked ~ .nav-links { display: flex; }
+    .nav-link, .nav-salir, .nav-boton { text-align: center; padding: 12px; }
+    .nav-separador { width: auto; height: 1px; margin: 6px 0; }
+    .nav-perfil { justify-content: center; padding: 8px; }
+}
+
+/* ---------- Pie ---------- */
+.pie { text-align: center; padding: 20px 16px; color: var(--texto-suave); font-size: .9rem; }
+.pie p { margin: 0; }

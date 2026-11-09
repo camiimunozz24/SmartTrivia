@@ -6,8 +6,8 @@
     --text-main: #1e293b;
     --text-muted: #64748b;
 
-    --brand-green: #4CAF50;
-    --brand-green-hover: #43A047;
+    --brand-green: #0b2d63; /* azul de la barra de navegación */
+    --brand-green-hover: #1e5aa8;
 
     --card-bg: #ffffff;
     --shadow-soft: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
@@ -97,7 +97,7 @@ body {
     padding: 10px 46px !important;
     letter-spacing: 0.7px;
     border-radius: var(--radius-md) !important;
-    box-shadow: 0 4px 14px rgb(76 175 80 / 0.3);
+    box-shadow: 0 4px 14px rgb(11 45 99 / 0.3);
     transition: all 0.2s ease-in-out !important;
     border: none !important;
 }
@@ -106,7 +106,7 @@ body {
 .home-btn-jugar:hover {
     background-color: var(--brand-green-hover) !important;
     transform: scale(1.03);
-    box-shadow: 0 6px 20px rgb(76 175 80 / 0.4);
+    box-shadow: 0 6px 20px rgb(11 45 99 / 0.4);
 }
 
 /* ==========================================
@@ -132,7 +132,7 @@ body {
     justify-content: center;
     width: 36px;
     height: 36px;
-    background-color: #e8f5e9;
+    background-color: #e3edf9;
     color: var(--brand-green);
     font-weight: 700;
     font-size: 1.1rem;
@@ -181,3 +181,12 @@ body {
     }
 }
 
+.home-hero .home-btn-jugar {
+    display: block;
+    width: 100%;
+    max-width: 300px;
+    margin: 8px auto 0;
+    padding: 14px 32px !important;
+    font-size: 1.5rem !important;
+    letter-spacing: 1px;
+}
