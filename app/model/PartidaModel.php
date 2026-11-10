@@ -12,7 +12,7 @@ class PartidaModel
     // ---- REGLAS DEL JUEGO (todas se controlan en el servidor, el navegador solo las muestra) ----
     const TIEMPO_PREGUNTA_MS = 20000;  // 20 segundos para responder cada pregunta
     const GRACIA_MS = 2000;            // Margen por demora de red: se acepta hasta 22 s medidos en el servidor
-    const ABANDONO_MS = 60000;         // Partida trabada sin pregunta por más de 60 s: se da por terminada
+    const ABANDONO_MS = 60000;         // Partida trabada (sin pregunta, o girando la ruleta sin llegar a ver la pregunta) por más de 60 s: se da por terminada
 
     public function __construct($database)
     {
@@ -33,6 +33,26 @@ class PartidaModel
     public function obtenerCategorias()
     {
         return $this->database->queryAll("SELECT id, nombre, color FROM categorias ORDER BY id");
+    }
+
+    // Categorías que tienen al menos una pregunta activa (son las que entran en la ruleta)
+    public function obtenerCategoriasConPreguntas()
+    {
+        return $this->database->queryAll(
+            "SELECT c.id, c.nombre, c.color FROM categorias c
+             WHERE EXISTS (SELECT 1 FROM preguntas p WHERE p.categoria_id = c.id AND p.estado = 'activa')
+             ORDER BY c.id"
+        );
+    }
+
+    // Sortea una categoría. Todas tienen la MISMA probabilidad (el sorteo se hace acá, en el servidor)
+    public function sortearCategoria()
+    {
+        $categorias = $this->obtenerCategoriasConPreguntas();
+        if (count($categorias) === 0) {
+            return null;
+        }
+        return $categorias[random_int(0, count($categorias) - 1)];
     }
 
     // Busca y devuelve una categoría por su ID
@@ -179,12 +199,33 @@ class PartidaModel
         if ($partida['pregunta_inicio_ms'] === null) {
             return false;
         }
+        if ($this->esperandoPregunta($partida)) { // Giró la ruleta pero nunca llegó a ver la pregunta
+            return $this->ahoraMs() - abs((int)$partida['pregunta_inicio_ms']) > self::ABANDONO_MS;
+        }
         $transcurrido = $this->ahoraMs() - (int)$partida['pregunta_inicio_ms'];
 
         if ($partida['pregunta_token'] !== null) { // Hay una pregunta esperando respuesta
             return $transcurrido > self::TIEMPO_PREGUNTA_MS + self::GRACIA_MS;
         }
         return $transcurrido > self::ABANDONO_MS; // Sin pregunta asignada por demasiado tiempo
+    }
+
+    // Mientras gira la ruleta la partida está "esperando" que se muestre la primera pregunta.
+    // En ese tiempo el reloj NO corre: se guarda la hora de creación en NEGATIVO (pregunta_inicio_ms < 0)
+    public function esperandoPregunta($partida)
+    {
+        return $partida['pregunta_inicio_ms'] !== null && (int)$partida['pregunta_inicio_ms'] < 0;
+    }
+
+    // Arranca los 20 segundos en el momento en que se muestra la pregunta por primera vez.
+    // La condición "pregunta_inicio_ms < 0" hace que solo cuente la primera vez (recargar no reinicia el reloj)
+    public function iniciarReloj($partida)
+    {
+        $this->database->execute(
+            "UPDATE partidas SET pregunta_inicio_ms = ? WHERE id = ? AND estado = 'en_curso' AND pregunta_inicio_ms < 0",
+            [$this->ahoraMs(), (int)$partida['id']]
+        );
+        return $this->database->queryOne("SELECT * FROM partidas WHERE id = ?", [(int)$partida['id']]);
     }
 
     // Milisegundos que lleva mostrada la pregunta actual
@@ -208,7 +249,7 @@ class PartidaModel
             $this->database->execute(
                 "INSERT INTO partidas (usuario_id, categoria_id, puntaje, estado, activa_usuario_id, pregunta_id, pregunta_token, pregunta_inicio_ms)
                  VALUES (?, ?, 0, 'en_curso', ?, ?, ?, ?)",
-                [(int)$usuarioId, (int)$categoriaId, (int)$usuarioId, (int)$pregunta['id'], $token, $this->ahoraMs()]
+                [(int)$usuarioId, (int)$categoriaId, (int)$usuarioId, (int)$pregunta['id'], $token, -$this->ahoraMs()] // negativo = el reloj arranca cuando se vea la pregunta
             );
         } catch (\PDOException $e) {
             if ($e->getCode() === '23000') { // Violación de clave única: ya hay una partida en curso

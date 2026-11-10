@@ -63,12 +63,6 @@
             enviar(e.submitter || null);
         });
 
-        document.addEventListener('keydown', function (e) {
-            var i = 'abcd'.indexOf(e.key.toLowerCase());
-            var botones = form.querySelectorAll('button');
-            if (e.key.length === 1 && i !== -1 && botones[i]) { enviar(botones[i]); }
-        });
-
         function tick() {
             var resto = Math.max(0, fin - Date.now());
             numero.textContent = Math.ceil(resto / 1000);

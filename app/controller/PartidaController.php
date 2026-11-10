@@ -35,20 +35,15 @@ class PartidaController
             return;
         }
 
-        $categorias = $this->model->obtenerCategorias();
-        foreach ($categorias as &$categoria) {
-        }
-        unset($categoria);
-
         $this->noGuardarEnCache();
-        $this->render->renderiza("categorias", [
-            "categorias" => $categorias,
+        $categorias = $this->model->obtenerCategoriasConPreguntas();
+        $this->render->renderiza("categorias", array_merge($this->datosRuleta($categorias), [
             "limite_segundos" => PartidaModel::TIEMPO_PREGUNTA_MS / 1000,
-            "sin_preguntas" => Request::get('error') === 'sin_preguntas',
-        ]);
+            "sin_preguntas" => count($categorias) === 0 || Request::get('error') === 'sin_preguntas',
+        ]));
     }
 
-    // Recibe la categoría elegida y empieza la partida con puntaje 0
+    // Gira la ruleta: el SERVIDOR sortea la categoría (todas con la misma probabilidad) y crea la partida
     public function elegir()
     {
         $usuarioId = $_SESSION['usuario_id'];
@@ -62,21 +57,48 @@ class PartidaController
             return;
         }
 
-        $categoria = $this->model->obtenerCategoria((int)Request::post('categoria', 0));
-        if ($categoria === null) { // No eligió nada o mandó una categoría que no existe
-            Redirect::to('/partida/iniciar');
-            return;
-        }
-
-        $pregunta = $this->model->elegirPregunta($usuarioId, $categoria['id']);
-        if ($pregunta === null) { // La categoría no tiene ninguna pregunta activa
+        $categoria = $this->model->sortearCategoria();
+        $pregunta = $categoria === null ? null : $this->model->elegirPregunta($usuarioId, $categoria['id']);
+        if ($pregunta === null) { // No hay ninguna categoría con preguntas activas
             Redirect::to('/partida/iniciar?error=sin_preguntas');
             return;
         }
 
         // Si otra pestaña se adelantó y ya creó la partida, la base de datos lo rechaza y se sigue con esa
         $this->model->crearPartida($usuarioId, $categoria['id'], $pregunta);
-        Redirect::to('/partida/pregunta');
+        Redirect::to('/partida/ruleta');
+    }
+
+    // Muestra la ruleta girando hasta la categoría que YA sorteó el servidor. El reloj todavía no corre
+    public function ruleta()
+    {
+        $usuarioId = $_SESSION['usuario_id'];
+        $partida = $this->model->partidaActiva($usuarioId);
+
+        if ($partida === null) {
+            Redirect::to($this->model->tieneResultadoPendiente($usuarioId) ? '/partida/resultado' : '/partida/iniciar');
+            return;
+        }
+        if (!$this->model->esperandoPregunta($partida)) { // Ya vio la primera pregunta: no se vuelve a girar
+            Redirect::to('/partida/pregunta');
+            return;
+        }
+
+        $categorias = $this->model->obtenerCategoriasConPreguntas();
+        $indice = 0;
+        foreach ($categorias as $i => $categoria) {
+            if ((int)$categoria['id'] === (int)$partida['categoria_id']) {
+                $indice = $i;
+            }
+        }
+        $elegida = $categorias[$indice] ?? ['nombre' => '', 'color' => '#546E7A'];
+
+        $this->noGuardarEnCache();
+        $this->render->renderiza("ruleta", array_merge($this->datosRuleta($categorias), [
+            "indice" => $indice,
+            "categoria" => $elegida['nombre'],
+            "color" => $elegida['color'],
+        ]));
     }
 
     // Muestra la pregunta actual de la partida en curso
@@ -94,6 +116,10 @@ class PartidaController
             $this->model->asignarSiguientePregunta($partida);
             Redirect::to('/partida/pregunta');
             return;
+        }
+
+        if ($this->model->esperandoPregunta($partida)) { // Es la primera vez que ve la pregunta: recién ahora empiezan los 20 s
+            $partida = $this->model->iniciarReloj($partida);
         }
 
         $pregunta = $this->model->obtenerPregunta($partida['pregunta_id']);
@@ -140,6 +166,11 @@ class PartidaController
 
         $partida = $this->model->partidaActiva($usuarioId); // Si se venció el tiempo, acá mismo la cierra
         if ($partida === null || $partida['pregunta_token'] === null) {
+            Redirect::to('/partida/pregunta');
+            return;
+        }
+
+        if ($this->model->esperandoPregunta($partida)) { // Todavía no vio la pregunta (el reloj no empezó)
             Redirect::to('/partida/pregunta');
             return;
         }
@@ -235,6 +266,41 @@ class PartidaController
 
         $this->noGuardarEnCache();
         $this->render->renderiza("resultado", $data);
+    }
+
+    // Cada categoría usa un dibujo de public/img/iconos/. El archivo se llama como la categoría, sin tildes,
+    // en minúsculas y con guiones: "Ciencia y Tecnología" -> ciencia-y-tecnologia.svg
+    // Si no existe el archivo devuelve vacío y ese gajo queda sin ícono
+    private function iconoCategoria($nombre)
+    {
+        $nombre = strtr(mb_strtolower($nombre), ['á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u', 'ñ' => 'n']);
+        $archivo = trim(preg_replace('/[^a-z0-9]+/', '-', $nombre), '-');
+        return is_file(__DIR__ . '/../../public/img/iconos/' . $archivo . '.svg') ? $archivo : '';
+    }
+
+    // Arma los datos para dibujar la ruleta: un gajo por categoría, todos del mismo tamaño
+    private function datosRuleta($categorias)
+    {
+        $total = max(1, count($categorias));
+        $angulo = 360 / $total;
+        $tramos = [];
+        $gajos = [];
+        foreach ($categorias as $i => $categoria) {
+            $centro = ($i + 0.5) * $angulo;
+            $tramos[] = $categoria['color'] . ' ' . round($i * $angulo, 2) . 'deg ' . round(($i + 1) * $angulo, 2) . 'deg';
+            $gajos[] = [
+                "nombre" => $categoria['nombre'],
+                "icono" => $this->iconoCategoria($categoria['nombre']),
+                "centro" => round($centro, 2),
+                "invertido" => $centro > 180, // En la mitad izquierda el texto se da vuelta para que se lea derecho
+            ];
+        }
+        return [
+            "gradiente" => 'conic-gradient(' . implode(', ', $tramos) . ')',
+            "gajos" => $gajos,
+            "total" => $total,
+            "grados_gajo" => round($angulo, 2),
+        ];
     }
 
     // Le dice al navegador que no guarde la página, así "atrás" y "adelante" siempre piden la versión actual al servidor
