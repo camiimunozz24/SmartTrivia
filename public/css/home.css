@@ -181,6 +181,10 @@ body {
     }
 }
 
+
+/* ==========================================
+   BOTÓN JUGAR (un poco más grande que el original)
+   ========================================== */
 .home-hero .home-btn-jugar {
     display: block;
     width: 100%;

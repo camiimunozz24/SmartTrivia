@@ -6,8 +6,14 @@
     <div class="home-card home-hero w3-margin-top">
         <div class="home-icono">🧠</div>
         <h2>¡Hola{{#usuario}}, @{{usuario}}{{/usuario}}!</h2>
-        <p class="home-subtitulo">Elegí una categoría y demostrá cuánto sabés.</p>
-        <a href="/partida/iniciar" class="w3-button w3-green w3-large w3-round-large home-btn-jugar">Jugar</a>
+        <p class="home-subtitulo">Girá la ruleta y demostrá cuánto sabés.</p>
+        {{#en_curso}}
+            <p class="home-subtitulo">Tenés una partida en curso. ¡El reloj sigue corriendo!</p>
+            <a href="/partida/pregunta" class="w3-button w3-green w3-large w3-round-large home-btn-jugar">▶ Continuar partida</a>
+        {{/en_curso}}
+        {{^en_curso}}
+            <a href="/partida/iniciar" class="w3-button w3-green w3-large w3-round-large home-btn-jugar">Jugar</a>
+        {{/en_curso}}
     </div>
 
     <!-- Cómo se juega -->
@@ -16,15 +22,15 @@
         <div class="home-pasos">
             <div class="home-paso">
                 <span class="home-paso-num">1</span>
-                <p>Elegí una categoría</p>
+                <p>Girá la ruleta y te toca una categoría</p>
             </div>
             <div class="home-paso">
                 <span class="home-paso-num">2</span>
-                <p>Respondé: cada acierto suma 1 punto</p>
+                <p>Respondé en {{limite_segundos}} segundos: cada acierto suma 1 punto</p>
             </div>
             <div class="home-paso">
                 <span class="home-paso-num">3</span>
-                <p>Si te equivocás, la partida termina</p>
+                <p>Si te equivocás o se acaba el tiempo, la partida termina</p>
             </div>
         </div>
     </div>

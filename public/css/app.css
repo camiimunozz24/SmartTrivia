@@ -22,7 +22,7 @@ body {
 
 /* ---------- Barra de navegación ---------- */
 .nav {
-    position: sticky; top: 0; z-index: 2000;
+    position: sticky; top: 0; z-index: 2000; /* más alto que el mapa (Leaflet usa hasta 1000) */
     background: linear-gradient(135deg, #07183a 0%, #0b2d63 100%);
     border-bottom: 1px solid rgb(100 181 246 / .25);
     box-shadow: 0 2px 12px rgb(0 0 0 / .35);

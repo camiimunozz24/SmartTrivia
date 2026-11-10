@@ -1,14 +1,28 @@
 <link rel="stylesheet" href="/public/css/partida.css">
 
-<div class="partida-wrap">
-    <h2 class="categorias-titulo">Elegí una categoría</h2>
-    <p class="categorias-sub">¿En cuál te animás a jugar?</p>
+<div class="partida-wrap ruleta-pagina">
+    <h2 class="categorias-titulo">¡Girá la ruleta!</h2>
+    <p class="categorias-sub">Te toca una categoría al azar. Tenés {{limite_segundos}} segundos por pregunta.</p>
 
-    <form method="post" action="/partida/elegir" class="categorias-grid">
-        {{#categorias}}
-            <button type="submit" name="categoria" value="{{id}}" class="categoria-btn" style="background-color: {{color}};">
-                {{nombre}}
-            </button>
-        {{/categorias}}
-    </form>
+    {{#sin_preguntas}}
+        <div class="aviso-error">Todavía no hay preguntas cargadas para jugar. Probá más tarde.</div>
+    {{/sin_preguntas}}
+
+    {{^sin_preguntas}}
+        <div class="ruleta-caja" style="--n: {{total}};">
+            <div class="ruleta-aro"></div>
+            <div class="ruleta-puntero"></div>
+            <div class="ruleta-rueda" style="background: {{gradiente}};">
+                {{#gajos}}
+                    <div class="ruleta-icono" style="--a: {{centro}}deg;">{{#icono}}<img src="/public/img/iconos/{{icono}}.svg" alt="">{{/icono}}</div>
+                {{/gajos}}
+            </div>
+            <div class="ruleta-brillo"></div>
+            <div class="ruleta-centro"></div>
+        </div>
+
+        <form method="post" action="/partida/elegir" class="ruleta-form">
+            <button type="submit" class="boton boton-primario boton-girar">Girar la ruleta</button>
+        </form>
+    {{/sin_preguntas}}
 </div>

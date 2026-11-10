@@ -1,0 +1,73 @@
+<link rel="stylesheet" href="/public/css/partida.css">
+
+<div class="partida-wrap ruleta-pagina">
+    <h2 class="categorias-titulo" id="ruleta-titulo">Girando...</h2>
+    <p class="categorias-sub"><span class="ruleta-resultado" id="ruleta-mensaje" style="background: {{color}};">&nbsp;</span></p>
+
+    <div class="ruleta-caja" style="--n: {{total}};">
+        <div class="ruleta-aro"></div>
+        <div class="ruleta-puntero" id="ruleta-puntero"></div>
+        <div class="ruleta-rueda" id="ruleta-rueda" style="background: {{gradiente}};"
+             data-indice="{{indice}}" data-categoria="{{categoria}}" data-grados="{{grados_gajo}}">
+                {{#gajos}}
+                    <div class="ruleta-icono" style="--a: {{centro}}deg;">{{#icono}}<img src="/public/img/iconos/{{icono}}.svg" alt="">{{/icono}}</div>
+                {{/gajos}}
+            </div>
+        <div class="ruleta-brillo"></div>
+        <div class="ruleta-centro"></div>
+    </div>
+
+    <p class="categorias-sub">
+        <a href="/partida/pregunta" class="boton boton-primario" id="ruleta-seguir" style="visibility:hidden;">Empezar</a>
+    </p>
+</div>
+
+<script>
+    // La categoría ya la sorteó el servidor. Esto solo es la animación: gira y frena sobre ese gajo.
+    (function () {
+        var rueda = document.getElementById('ruleta-rueda');
+        var mensaje = document.getElementById('ruleta-mensaje');
+        var boton = document.getElementById('ruleta-seguir');
+        var indice = parseInt(rueda.dataset.indice, 10);
+        var grados = parseFloat(rueda.dataset.grados);
+        var categoria = rueda.dataset.categoria;
+        var destino = 360 * 6 - (indice + 0.5) * grados; // 6 vueltas y frena con el gajo bajo el puntero
+        var terminado = false;
+
+        var iconos = rueda.querySelectorAll('.ruleta-icono img'); // solo los gajos que tienen ícono
+        function girarIconos(grados) { // los íconos giran al revés que la rueda: se ven siempre derechos
+            iconos.forEach(function (img) {
+                var a = parseFloat(img.parentNode.style.getPropertyValue('--a'));
+                img.style.transform = 'rotate(' + (90 - a - grados) + 'deg)';
+            });
+        }
+
+        function terminar() {
+            if (terminado) { return; }
+            terminado = true;
+            document.getElementById('ruleta-titulo').textContent = '¡Listo!';
+            mensaje.textContent = '¡Te tocó ' + categoria + '!';
+            mensaje.classList.add('visible');
+            document.getElementById('ruleta-puntero').classList.add('rebote');
+            boton.style.visibility = 'visible';
+            setTimeout(function () { window.location.href = '/partida/pregunta'; }, 1600);
+        }
+
+        var sinMovimiento = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (sinMovimiento) {
+            rueda.style.transform = 'rotate(' + destino + 'deg)';
+            iconos.forEach(function (img) { img.style.transition = 'none'; });
+            girarIconos(destino);
+            terminar();
+            return;
+        }
+        rueda.addEventListener('transitionend', function (e) { if (e.target === rueda) { terminar(); } });
+        setTimeout(terminar, 5500); // por si el navegador no avisa que terminó la animación
+        requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+                rueda.style.transform = 'rotate(' + destino + 'deg)';
+                girarIconos(destino);
+            });
+        });
+    })();
+</script>

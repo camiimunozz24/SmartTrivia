@@ -214,3 +214,15 @@
         padding: 20px;
     }
 }
+
+
+/* Botón "Editar perfil": centrado, en el azul marino del resto del sitio */
+html { scroll-behavior: smooth; }
+#qr-perfil { scroll-margin-top: 80px; }
+.perfil-editar-caja { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin: -4px 0 24px; }
+.perfil-editar {
+    display: inline-flex; align-items: center; gap: 8px; padding: 10px 26px; border-radius: 999px;
+    background: #0b2d63; color: #fff; font-weight: 700; font-size: 15px; text-decoration: none;
+    box-shadow: 0 4px 12px rgb(11 45 99 / .30); transition: background .2s, transform .15s;
+}
+.perfil-editar:hover { background: #1e5aa8; color: #fff; transform: translateY(-1px); }

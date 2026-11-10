@@ -2,8 +2,10 @@
 
 namespace app\controller;
 
+use Log;
 use Redirect;
 use Request;
+use app\model\PartidaModel;
 
 class PartidaController
 {
@@ -16,75 +18,125 @@ class PartidaController
         $this->model = $model;
     }
 
-    // Limpia los datos de partidas anteriores y muestra las categorías para elegir
+    // Todo el estado de la partida está en la base de datos, así que da igual desde qué pestaña, navegador o
+    // dispositivo se entre: el usuario siempre ve LA MISMA partida, la misma pregunta y el mismo tiempo restante.
+
+    // Muestra las categorías para elegir. Si el usuario ya está jugando, lo manda de vuelta a su partida
     public function iniciar()
     {
-        unset($_SESSION['partida'], $_SESSION['resultado']);
-        $this->render->renderiza("categorias", ["categorias" => $this->model->obtenerCategorias()]);
+        $usuarioId = $_SESSION['usuario_id'];
+
+        if ($this->model->partidaActiva($usuarioId) !== null) { // No puede empezar otra partida mientras tiene una abierta
+            Redirect::to('/partida/pregunta');
+            return;
+        }
+        if ($this->model->tieneResultadoPendiente($usuarioId)) { // Antes de jugar de nuevo ve cómo terminó la anterior
+            Redirect::to('/partida/resultado');
+            return;
+        }
+
+        $this->noGuardarEnCache();
+        $categorias = $this->model->obtenerCategoriasConPreguntas();
+        $this->render->renderiza("categorias", array_merge($this->datosRuleta($categorias), [
+            "limite_segundos" => PartidaModel::TIEMPO_PREGUNTA_MS / 1000,
+            "sin_preguntas" => count($categorias) === 0 || Request::get('error') === 'sin_preguntas',
+        ]));
     }
 
-    // Recibe la categoría elegida y empieza la partida con puntaje 0
+    // Gira la ruleta: el SERVIDOR sortea la categoría (todas con la misma probabilidad) y crea la partida
     public function elegir()
     {
-        $categoria = $this->model->obtenerCategoria((int)Request::post('categoria', 0));
+        $usuarioId = $_SESSION['usuario_id'];
 
-        if ($categoria === null) { // No eligió nada o mandó una categoría que no existe
+        if ($this->model->partidaActiva($usuarioId) !== null) { // Ya está jugando (por ejemplo desde otra pestaña): vuelve a esa partida
+            Redirect::to('/partida/pregunta');
+            return;
+        }
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             Redirect::to('/partida/iniciar');
             return;
         }
 
-        $_SESSION['partida'] = [ // Guarda en la sesión los datos iniciales
-            'puntaje' => 0,
-            'categoria_id' => $categoria['id'],
-            'pregunta_actual' => null,
-        ];
-        unset($_SESSION['resultado']); // Borra resultados anteriores y redirige al juego
-        Redirect::to('/partida/pregunta');
+        $categoria = $this->model->sortearCategoria();
+        $pregunta = $categoria === null ? null : $this->model->elegirPregunta($usuarioId, $categoria['id']);
+        if ($pregunta === null) { // No hay ninguna categoría con preguntas activas
+            Redirect::to('/partida/iniciar?error=sin_preguntas');
+            return;
+        }
+
+        // Si otra pestaña se adelantó y ya creó la partida, la base de datos lo rechaza y se sigue con esa
+        $this->model->crearPartida($usuarioId, $categoria['id'], $pregunta);
+        Redirect::to('/partida/ruleta');
     }
 
-    // Muestra la pregunta actual. Si todavía no hay una, elige una de la categoría que el usuario no haya visto
-    public function pregunta()
+    // Muestra la ruleta girando hasta la categoría que YA sorteó el servidor. El reloj todavía no corre
+    public function ruleta()
     {
-        if (!isset($_SESSION['partida'])) {
-            Redirect::to('/partida/iniciar');
+        $usuarioId = $_SESSION['usuario_id'];
+        $partida = $this->model->partidaActiva($usuarioId);
+
+        if ($partida === null) {
+            Redirect::to($this->model->tieneResultadoPendiente($usuarioId) ? '/partida/resultado' : '/partida/iniciar');
             return;
         }
-        $partida = $_SESSION['partida'];
-        $usuarioId = $_SESSION['usuario_id'];
-        $categoriaId = $partida['categoria_id'];
-
-        if ($partida['pregunta_actual'] === null) { // Si no hay pregunta asignada le pide al modelo una al azar
-            $pregunta = $this->model->obtenerPreguntaAleatoria($usuarioId, $categoriaId);
-
-            if ($pregunta === null) { // Ya vio todas las de la categoría: se reinicia ese historial y se elige de nuevo
-                $this->model->reiniciarVistas($usuarioId, $categoriaId);
-                $pregunta = $this->model->obtenerPreguntaAleatoria($usuarioId, $categoriaId);
-            }
-
-            if ($pregunta === null) { // La categoría no tiene ninguna pregunta activa
-                $_SESSION['resultado'] = ['puntaje' => $partida['puntaje'], 'sin_preguntas' => true];
-                unset($_SESSION['partida']);
-                Redirect::to('/partida/resultado');
-                return;
-            }
-            // Registra que el usuario ya está viendo la pregunta para no repetirla
-            $this->model->marcarComoVista($usuarioId, $pregunta['id']);
-            $_SESSION['partida']['pregunta_actual'] = $pregunta['id'];
-        } else {
-            // Si recarga la página, ve la misma pregunta (no puede saltearla)
-            $pregunta = $this->model->obtenerPregunta($partida['pregunta_actual']);
+        if (!$this->model->esperandoPregunta($partida)) { // Ya vio la primera pregunta: no se vuelve a girar
+            Redirect::to('/partida/pregunta');
+            return;
         }
+
+        $categorias = $this->model->obtenerCategoriasConPreguntas();
+        $indice = 0;
+        foreach ($categorias as $i => $categoria) {
+            if ((int)$categoria['id'] === (int)$partida['categoria_id']) {
+                $indice = $i;
+            }
+        }
+        $elegida = $categorias[$indice] ?? ['nombre' => '', 'color' => '#546E7A'];
+
+        $this->noGuardarEnCache();
+        $this->render->renderiza("ruleta", array_merge($this->datosRuleta($categorias), [
+            "indice" => $indice,
+            "categoria" => $elegida['nombre'],
+            "color" => $elegida['color'],
+        ]));
+    }
+
+    // Muestra la pregunta actual de la partida en curso
+    public function pregunta()
+    {
+        $usuarioId = $_SESSION['usuario_id'];
+        $partida = $this->model->partidaActiva($usuarioId);
+
+        if ($partida === null) { // No hay partida (o se le acabó el tiempo recién)
+            Redirect::to($this->model->tieneResultadoPendiente($usuarioId) ? '/partida/resultado' : '/partida/iniciar');
+            return;
+        }
+
+        if ($partida['pregunta_token'] === null) { // Caso raro: justo entre una pregunta y la siguiente
+            $this->model->asignarSiguientePregunta($partida);
+            Redirect::to('/partida/pregunta');
+            return;
+        }
+
+        if ($this->model->esperandoPregunta($partida)) { // Es la primera vez que ve la pregunta: recién ahora empiezan los 20 s
+            $partida = $this->model->iniciarReloj($partida);
+        }
+
+        $pregunta = $this->model->obtenerPregunta($partida['pregunta_id']);
 
         // A cada respuesta le asignamos su letra A, B, C, D
         $letras = ['A', 'B', 'C', 'D'];
         $respuestas = [];
-        foreach ($this->model->obtenerRespuestas($pregunta['id']) as $i => $respuesta) {
+        foreach ($this->model->obtenerRespuestas($pregunta['id'], $partida['pregunta_token']) as $i => $respuesta) {
             $respuestas[] = [
                 "id" => $respuesta['id'],
                 "letra" => $letras[$i] ?? '',
                 "texto" => $respuesta['texto'],
             ];
         }
+
+        $restanteMs = $this->model->milisegundosRestantes($partida);
+
         // Empaqueta toda la información y renderiza
         $data = [
             "categoria" => $pregunta['categoria'],
@@ -92,54 +144,169 @@ class PartidaController
             "enunciado" => $pregunta['enunciado'],
             "respuestas" => $respuestas,
             "puntaje" => $partida['puntaje'],
+            "token" => $partida['pregunta_token'],
+            "limite_segundos" => PartidaModel::TIEMPO_PREGUNTA_MS / 1000,
+            "restante_ms" => $restanteMs,
+            "restante_segundos" => (int)ceil($restanteMs / 1000),
         ];
+
+        $this->noGuardarEnCache(); // El botón "atrás" no puede mostrar una pregunta vieja
         $this->render->renderiza("pregunta", $data);
     }
 
-    // Recibe la respuesta elegida: si es correcta suma 1 punto y sigue, si no termina la partida
+    // Recibe la respuesta. Todas las reglas se validan acá, en el servidor
     public function responder()
     {
-        $partida = $_SESSION['partida'] ?? null;
+        $usuarioId = $_SESSION['usuario_id'];
 
-        if ($partida === null || $partida['pregunta_actual'] === null) {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             Redirect::to('/partida/pregunta');
             return;
         }
 
-        $preguntaId = $partida['pregunta_actual'];
+        $partida = $this->model->partidaActiva($usuarioId); // Si se venció el tiempo, acá mismo la cierra
+        if ($partida === null || $partida['pregunta_token'] === null) {
+            Redirect::to('/partida/pregunta');
+            return;
+        }
+
+        if ($this->model->esperandoPregunta($partida)) { // Todavía no vio la pregunta (el reloj no empezó)
+            Redirect::to('/partida/pregunta');
+            return;
+        }
+
+        // REGLA: cada pregunta tiene un código de un solo uso. Si no coincide, es una pregunta vieja
+        // (otra pestaña, botón "atrás", formulario viejo): se ignora sin castigo y vuelve a la pregunta actual.
+        $token = (string)Request::post('token', '');
+        if (!hash_equals($partida['pregunta_token'], $token)) {
+            Redirect::to('/partida/pregunta');
+            return;
+        }
+
+        $preguntaId = (int)$partida['pregunta_id'];
         $respuestaId = (int)Request::post('respuesta', 0);
+        $transcurrido = $this->model->milisegundosTranscurridos($partida);
 
-        // Si la rta es correcta
-        if ($this->model->esCorrecta($preguntaId, $respuestaId)) {
-            $_SESSION['partida']['puntaje']++;
-            $_SESSION['partida']['pregunta_actual'] = null;
+        // REGLA: sin respuesta. Solo vale como "se acabó el tiempo" si el reloj del servidor realmente llegó al límite
+        if ($respuestaId === 0) {
+            if ($transcurrido >= PartidaModel::TIEMPO_PREGUNTA_MS - 1000) {
+                $this->model->finalizar($partida['id'], 'tiempo');
+                Redirect::to('/partida/resultado');
+            } else {
+                Redirect::to('/partida/pregunta'); // Mandó el formulario antes de tiempo: se ignora
+            }
+            return;
+        }
+
+        // REGLA: una sola respuesta por pregunta. Gasta el código: si dos peticiones llegan juntas, solo una pasa
+        if (!$this->model->consumirPregunta($partida['id'], $token)) {
             Redirect::to('/partida/pregunta');
             return;
         }
 
-        // Se equivocó: guardamos el resultado y cerramos la partida
-        $pregunta = $this->model->obtenerPregunta($preguntaId);
-        $_SESSION['resultado'] = [
-            'puntaje' => $partida['puntaje'],
-            'sin_preguntas' => false,
-            'pregunta' => $pregunta['enunciado'],
-            'correcta' => $this->model->obtenerTextoCorrecta($preguntaId),
-        ];
-        unset($_SESSION['partida']);
+        if ($this->model->esCorrecta($preguntaId, $respuestaId)) {
+            $this->model->sumarPunto($partida['id']);
+            $partida['puntaje']++;
+            if (!$this->model->asignarSiguientePregunta($partida)) { // Se quedó sin preguntas
+                Redirect::to('/partida/resultado');
+                return;
+            }
+            Redirect::to('/partida/pregunta');
+            return;
+        }
+
+        // Se equivocó: la partida termina
+        $this->model->finalizar($partida['id'], 'error');
         Redirect::to('/partida/resultado');
     }
 
-    // Muestra el final de la partida: respuesta correcta y puntos ganados
+    // Muestra el final de la partida: por qué terminó, la respuesta correcta y los puntos ganados
     public function resultado()
     {
-        $resultado = $_SESSION['resultado'] ?? null;
+        $usuarioId = $_SESSION['usuario_id'];
 
-        if ($resultado === null) {
-            Redirect::to('/home');
+        if ($this->model->partidaActiva($usuarioId) !== null) { // Sigue jugando: no puede espiar el resultado
+            Redirect::to('/partida/pregunta');
             return;
         }
 
-        $resultado['puntos_texto'] = $resultado['puntaje'] === 1 ? 'punto' : 'puntos';
-        $this->render->renderiza("resultado", $resultado);
+        $partida = $this->model->ultimaTerminada($usuarioId);
+        if ($partida === null) {
+            Redirect::to('/home');
+            return;
+        }
+        $this->model->marcarResultadoVisto($partida['id']);
+
+        $motivo = $partida['motivo_fin'];
+        $titulos = [
+            'error' => ['❌', 'Respuesta incorrecta'],
+            'tiempo' => ['⏰', '¡Se acabó el tiempo!'],
+            'sin_preguntas' => ['🏁', 'No hay más preguntas'],
+        ];
+        [$icono, $titulo] = $titulos[$motivo] ?? ['🏁', 'Fin de la partida'];
+
+        $data = [
+            "icono" => $icono,
+            "titulo" => $titulo,
+            "motivo_error" => $motivo === 'error',
+            "motivo_tiempo" => $motivo === 'tiempo',
+            "motivo_sin_preguntas" => $motivo === 'sin_preguntas',
+            "puntaje" => (int)$partida['puntaje'],
+            "puntos_texto" => (int)$partida['puntaje'] === 1 ? 'punto' : 'puntos',
+            "limite_segundos" => PartidaModel::TIEMPO_PREGUNTA_MS / 1000,
+        ];
+
+        // Solo se muestra la respuesta correcta cuando la partida terminó por error o por tiempo
+        if (in_array($motivo, ['error', 'tiempo'], true) && $partida['pregunta_id'] !== null) {
+            $pregunta = $this->model->obtenerPregunta($partida['pregunta_id']);
+            $data["pregunta"] = $pregunta['enunciado'];
+            $data["correcta"] = $this->model->obtenerTextoCorrecta($partida['pregunta_id']);
+            $data["mostrar_correcta"] = true;
+        }
+
+        $this->noGuardarEnCache();
+        $this->render->renderiza("resultado", $data);
+    }
+
+    // Cada categoría usa un dibujo de public/img/iconos/. El archivo se llama como la categoría, sin tildes,
+    // en minúsculas y con guiones: "Ciencia y Tecnología" -> ciencia-y-tecnologia.svg
+    // Si no existe el archivo devuelve vacío y ese gajo queda sin ícono
+    private function iconoCategoria($nombre)
+    {
+        $nombre = strtr(mb_strtolower($nombre), ['á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u', 'ñ' => 'n']);
+        $archivo = trim(preg_replace('/[^a-z0-9]+/', '-', $nombre), '-');
+        return is_file(__DIR__ . '/../../public/img/iconos/' . $archivo . '.svg') ? $archivo : '';
+    }
+
+    // Arma los datos para dibujar la ruleta: un gajo por categoría, todos del mismo tamaño
+    private function datosRuleta($categorias)
+    {
+        $total = max(1, count($categorias));
+        $angulo = 360 / $total;
+        $tramos = [];
+        $gajos = [];
+        foreach ($categorias as $i => $categoria) {
+            $centro = ($i + 0.5) * $angulo;
+            $tramos[] = $categoria['color'] . ' ' . round($i * $angulo, 2) . 'deg ' . round(($i + 1) * $angulo, 2) . 'deg';
+            $gajos[] = [
+                "nombre" => $categoria['nombre'],
+                "icono" => $this->iconoCategoria($categoria['nombre']),
+                "centro" => round($centro, 2),
+                "invertido" => $centro > 180, // En la mitad izquierda el texto se da vuelta para que se lea derecho
+            ];
+        }
+        return [
+            "gradiente" => 'conic-gradient(' . implode(', ', $tramos) . ')',
+            "gajos" => $gajos,
+            "total" => $total,
+            "grados_gajo" => round($angulo, 2),
+        ];
+    }
+
+    // Le dice al navegador que no guarde la página, así "atrás" y "adelante" siempre piden la versión actual al servidor
+    private function noGuardarEnCache()
+    {
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
     }
 }
