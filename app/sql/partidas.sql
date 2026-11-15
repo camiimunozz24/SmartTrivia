@@ -25,3 +25,6 @@ CREATE TABLE IF NOT EXISTS partidas (
     UNIQUE KEY uq_partida_activa (activa_usuario_id),
     KEY idx_partidas_usuario (usuario_id, estado)
 );
+-- Para que el puntaje pueda tener medio punto (1.5)
+ALTER TABLE partidas
+    MODIFY puntaje DECIMAL(6,1) NOT NULL DEFAULT 0;

@@ -21,11 +21,17 @@ class PerfilModel
 
     public function obtenerEstadisticas($usuarioId)
     {
-        // En esta entrega se inicializan en 0.
-        // Quedará conectado a las tablas de partidas y preguntas en la siguiente entrega.
+        try {
+            $fila = $this->database->queryOne(
+                "SELECT COALESCE(SUM(puntaje), 0) AS puntaje, COUNT(*) AS partidas FROM partidas WHERE usuario_id = ?",
+                [(int)$usuarioId]
+            );
+        } catch (\Throwable $e) {
+            $fila = null;
+        }
         return [
-            "puntaje_acumulado" => 0,
-            "partidas_jugadas" => 0
+            "puntaje_acumulado" => (float)($fila['puntaje'] ?? 0),
+            "partidas_jugadas" => (int)($fila['partidas'] ?? 0)
         ];
     }
 

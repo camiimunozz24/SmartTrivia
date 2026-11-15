@@ -6,13 +6,23 @@ class PartidaModel
 {
     private $database;
 
-    // Define cuantas preguntas vistas no se borran al reiniciar el historial
-    const PREGUNTAS_RECIENTES = 3;
-
     // ---- REGLAS DEL JUEGO (todas se controlan en el servidor, el navegador solo las muestra) ----
     const TIEMPO_PREGUNTA_MS = 20000;  // 20 segundos para responder cada pregunta
     const GRACIA_MS = 2000;            // Margen por demora de red: se acepta hasta 22 s medidos en el servidor
     const ABANDONO_MS = 60000;         // Partida trabada (sin pregunta, o girando la ruleta sin llegar a ver la pregunta) por más de 60 s: se da por terminada
+
+    // ---- DIFICULTAD Y PUNTOS ----
+    const RESPUESTAS_MINIMAS = 5;      // Con menos respuestas que estas la pregunta cuenta como "fácil"
+    const ERROR_MAXIMO_FACIL = 0.30;   // Menos de 30 % de respuestas incorrectas = fácil
+    const ERROR_MINIMO_DIFICIL = 0.60; // 60 % o más = difícil (entre las dos = media)
+    const PUNTOS = ['facil' => 1.0, 'media' => 1.5, 'dificil' => 2.0];
+
+    // ---- RESULTADOS POSIBLES AL PROCESAR UNA RESPUESTA ----
+    const RESP_IGNORADA = 'ignorada';           // Petición vieja o inválida: no pasa nada
+    const RESP_CORRECTA = 'correcta';           // Acertó y sigue jugando
+    const RESP_ERROR = 'error';                 // Se equivocó: partida terminada
+    const RESP_TIEMPO = 'tiempo';               // Se acabó el tiempo: partida terminada
+    const RESP_SIN_PREGUNTAS = 'sin_preguntas'; // Acertó y ya no quedan preguntas: partida terminada
 
     public function __construct($database)
     {
@@ -30,10 +40,10 @@ class PartidaModel
     // ------------------------------------------------------------------
 
     // Trae todas las categorías de la bd para que el usuario elija
-    public function obtenerCategorias()
-    {
-        return $this->database->queryAll("SELECT id, nombre, color FROM categorias ORDER BY id");
-    }
+//    public function obtenerCategorias()
+//    {
+//        return $this->database->queryAll("SELECT id, nombre, color FROM categorias ORDER BY id");
+//    }
 
     // Categorías que tienen al menos una pregunta activa (son las que entran en la ruleta)
     public function obtenerCategoriasConPreguntas()
@@ -61,30 +71,39 @@ class PartidaModel
         return $this->database->queryOne("SELECT id, nombre, color FROM categorias WHERE id = ?", [(int)$id]);
     }
 
-    // Trae una pregunta activa al azar de esa categoría que el usuario NO haya visto
+    // Trae la pregunta activa de esa categoría que el usuario NO haya visto, en orden de dificultad:
+    // primero las fáciles, después las medias y al final las difíciles. Entre las de la misma dificultad, al azar
     public function obtenerPreguntaAleatoria($usuarioId, $categoriaId)
     {
+        // 1 = fácil, 2 = media, 3 = difícil.
+        $orden = "CASE
+                    WHEN p.veces_respondida < " . self::RESPUESTAS_MINIMAS . " THEN 1
+                    WHEN p.veces_incorrecta / p.veces_respondida < " . self::ERROR_MAXIMO_FACIL . " THEN 1
+                    WHEN p.veces_incorrecta / p.veces_respondida >= " . self::ERROR_MINIMO_DIFICIL . " THEN 3
+                    ELSE 2
+                  END";
+
         $sql = "SELECT p.id, p.enunciado, c.nombre AS categoria, c.color
                 FROM preguntas p
                 JOIN categorias c ON c.id = p.categoria_id
                 WHERE p.estado = 'activa'
                 AND p.categoria_id = ?
                 AND p.id NOT IN (SELECT pregunta_id FROM preguntas_vistas WHERE usuario_id = ?)
-                ORDER BY RAND() LIMIT 1";
+                ORDER BY $orden, RAND() LIMIT 1";
         return $this->database->queryOne($sql, [(int)$categoriaId, (int)$usuarioId]);
     }
 
     // Elige una pregunta que el usuario no vio. Si ya vio todas las de la categoría, reinicia ese historial y elige de nuevo
-    public function elegirPregunta($usuarioId, $categoriaId)
-    {
-        $pregunta = $this->obtenerPreguntaAleatoria($usuarioId, $categoriaId);
-
-        if ($pregunta === null) {
-            $this->reiniciarVistas($usuarioId, $categoriaId);
-            $pregunta = $this->obtenerPreguntaAleatoria($usuarioId, $categoriaId);
-        }
-        return $pregunta;
-    }
+//    public function elegirPregunta($usuarioId, $categoriaId)
+//    {
+//        $pregunta = $this->obtenerPreguntaAleatoria($usuarioId, $categoriaId);
+//
+//        if ($pregunta === null) {
+//            $this->reiniciarVistas($usuarioId, $categoriaId);
+//            $pregunta = $this->obtenerPreguntaAleatoria($usuarioId, $categoriaId);
+//        }
+//        return $pregunta;
+//    }
 
     // Trae una pregunta puntual por su ID (para volver a mostrarla si se recarga la página)
     public function obtenerPregunta($id)
@@ -103,44 +122,14 @@ class PartidaModel
         $this->database->execute($sql, [(int)$usuarioId, (int)$preguntaId]);
     }
 
-    // Reinicia el historial del usuario SOLO en esa categoría, conservando las últimas vistas
-    public function reiniciarVistas($usuarioId, $categoriaId)
-    {
-        // Cuántas preguntas activas tiene la categoría
-        $fila = $this->database->queryOne(
-            "SELECT COUNT(*) AS total FROM preguntas WHERE categoria_id = ? AND estado = 'activa'",
-            [(int)$categoriaId]
-        );
-
-        // Se conservan como mucho las recientes, pero siempre tiene que quedar al menos una pregunta disponible
-        $conservar = min(self::PREGUNTAS_RECIENTES, (int)$fila['total'] - 1);
-
-        // Busca la última de las preguntas que se conservan (la más antigua de las recientes)
-        $limite = null;
-        if ($conservar > 0) {
-            $sql = "SELECT pv.id
-                    FROM preguntas_vistas pv
-                    JOIN preguntas p ON p.id = pv.pregunta_id
-                    WHERE pv.usuario_id = ? AND p.categoria_id = ?
-                    ORDER BY pv.id DESC
-                    LIMIT 1 OFFSET " . ($conservar - 1);
-            $limite = $this->database->queryOne($sql, [(int)$usuarioId, (int)$categoriaId]);
-        }
-
-        if ($limite === null) { // Nada para conservar: se borran todas las vistas de esa categoría
-            $sql = "DELETE FROM preguntas_vistas
-                    WHERE usuario_id = ?
-                    AND pregunta_id IN (SELECT id FROM preguntas WHERE categoria_id = ?)";
-            $this->database->execute($sql, [(int)$usuarioId, (int)$categoriaId]);
-            return;
-        }
-
-        // Se borran las anteriores a ese límite. Quedan solo las más recientes
-        $sql = "DELETE FROM preguntas_vistas
-                WHERE usuario_id = ? AND id < ?
-                AND pregunta_id IN (SELECT id FROM preguntas WHERE categoria_id = ?)";
-        $this->database->execute($sql, [(int)$usuarioId, (int)$limite['id'], (int)$categoriaId]);
-    }
+    // Reinicia el historial del usuario SOLO en esa categoría: vuelve a empezar desde las preguntas fáciles
+//    public function reiniciarVistas($usuarioId, $categoriaId)
+//    {
+//        $sql = "DELETE FROM preguntas_vistas
+//                WHERE usuario_id = ?
+//                AND pregunta_id IN (SELECT id FROM preguntas WHERE categoria_id = ?)";
+//        $this->database->execute($sql, [(int)$usuarioId, (int)$categoriaId]);
+//    }
 
     // Trae las respuestas de una pregunta. NO incluye cuál es la correcta.
     // El orden es "al azar" pero siempre el mismo para una misma pregunta mostrada (depende del token),
@@ -262,25 +251,72 @@ class PartidaModel
     }
 
     // Le asigna a la partida la siguiente pregunta (con un token nuevo y el reloj en cero).
-    // Si no quedan preguntas, termina la partida. Devuelve true si se asignó una pregunta
+    // Primero busca en la misma categoría. Si el usuario ya vio todas sus preguntas, la partida salta a la
+    // siguiente categoría que todavía tenga preguntas sin ver. Solo termina cuando no queda ninguna en todo el juego.
+    // Devuelve true si se asignó una pregunta
     public function asignarSiguientePregunta($partida)
     {
-        $pregunta = $this->elegirPregunta($partida['usuario_id'], $partida['categoria_id']);
-        if ($pregunta === null) {
-            $this->finalizar($partida['id'], 'sin_preguntas');
-            return false;
+        $usuarioId = (int)$partida['usuario_id'];
+        $categoriaId = (int)$partida['categoria_id'];
+
+        $pregunta = $this->obtenerPreguntaAleatoria($usuarioId, $categoriaId);
+
+        if ($pregunta === null) { // Categoría agotada: pasa a la siguiente
+            $siguiente = $this->buscarSiguienteCategoria($usuarioId, $categoriaId);
+            if ($siguiente === null) { // No queda ninguna pregunta sin ver en ninguna categoría
+                $this->finalizar($partida['id'], 'sin_preguntas');
+                return false;
+            }
+            $categoriaId = (int)$siguiente['categoria']['id'];
+            $pregunta = $siguiente['pregunta'];
         }
 
         // La condición "pregunta_token IS NULL" evita que dos pestañas asignen preguntas distintas a la vez
         $filas = $this->database->execute(
-            "UPDATE partidas SET pregunta_id = ?, pregunta_token = ?, pregunta_inicio_ms = ?
+            "UPDATE partidas SET categoria_id = ?, pregunta_id = ?, pregunta_token = ?, pregunta_inicio_ms = ?
              WHERE id = ? AND estado = 'en_curso' AND pregunta_token IS NULL",
-            [(int)$pregunta['id'], bin2hex(random_bytes(16)), $this->ahoraMs(), (int)$partida['id']]
+            [$categoriaId, (int)$pregunta['id'], bin2hex(random_bytes(16)), $this->ahoraMs(), (int)$partida['id']]
         );
         if ($filas === 1) {
-            $this->marcarComoVista($partida['usuario_id'], $pregunta['id']);
+            $this->marcarComoVista($usuarioId, $pregunta['id']);
         }
         return true;
+    }
+
+    // Recorre las categorías en el orden de la ruleta, a partir de la que sigue a la actual,
+    // y devuelve la primera que tenga una pregunta activa sin ver, junto con esa pregunta. Si no hay ninguna, null
+    private function buscarSiguienteCategoria($usuarioId, $categoriaActualId)
+    {
+        $categorias = $this->obtenerCategoriasConPreguntas(); // Ordenadas por id, igual que la ruleta
+        $total = count($categorias);
+
+        $posicion = -1; // Si la actual ya no tiene preguntas activas no figura en la lista y se empieza desde la primera
+        foreach ($categorias as $i => $categoria) {
+            if ((int)$categoria['id'] === (int)$categoriaActualId) {
+                $posicion = $i;
+            }
+        }
+
+        for ($paso = 1; $paso <= $total; $paso++) {
+            $categoria = $categorias[($posicion + $paso) % $total];
+            if ((int)$categoria['id'] === (int)$categoriaActualId) { // Dio toda la vuelta: la actual ya se sabe que no tiene
+                continue;
+            }
+            $pregunta = $this->obtenerPreguntaAleatoria($usuarioId, $categoria['id']);
+            if ($pregunta !== null) {
+                return ['categoria' => $categoria, 'pregunta' => $pregunta];
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Borra TODO el historial de preguntas vistas del usuario.
+     * Es el único reinicio del historial: se llama en elegir() al empezar cada partida.
+     * Durante la partida, el historial evita que se repitan preguntas.*/
+    public function borrarHistorialVistas($usuarioId)
+    {
+        $this->database->execute("DELETE FROM preguntas_vistas WHERE usuario_id = ?", [(int)$usuarioId]);
     }
 
     // "Gasta" el token de la pregunta: solo UNA petición puede conseguirlo, así cada pregunta se responde una sola vez.
@@ -295,10 +331,123 @@ class PartidaModel
         return $filas === 1;
     }
 
-    // Suma un punto a la partida
-    public function sumarPunto($partidaId)
+    // Aplica TODAS las reglas de una respuesta y devuelve qué pasó.
+    public function procesarRespuesta($partida, $token, $respuestaId)
     {
-        $this->database->execute("UPDATE partidas SET puntaje = puntaje + 1 WHERE id = ?", [(int)$partidaId]);
+        // Todavía no vio la pregunta (el reloj no empezó)
+        if ($this->esperandoPregunta($partida)) {
+            return self::RESP_IGNORADA;
+        }
+
+        // Cada pregunta tiene un código de un solo uso. Si no coincide, es una pregunta vieja
+        if (!hash_equals($partida['pregunta_token'], $token)) {
+            return self::RESP_IGNORADA;
+        }
+
+        $preguntaId = (int)$partida['pregunta_id'];
+
+        // Sin respuesta: solo vale como "se acabó el tiempo" si el reloj del servidor realmente llegó al límite
+        if ($respuestaId === 0) {
+            if ($this->milisegundosTranscurridos($partida) >= self::TIEMPO_PREGUNTA_MS - 1000) {
+                $this->finalizar($partida['id'], 'tiempo');
+                return self::RESP_TIEMPO;
+            }
+            return self::RESP_IGNORADA; // Mandó el formulario antes de tiempo
+        }
+
+        // Una sola respuesta por pregunta: si dos peticiones llegan juntas, solo una pasa
+        if (!$this->consumirPregunta($partida['id'], $token)) {
+            return self::RESP_IGNORADA;
+        }
+
+        // La dificultad se toma ANTES de anotar esta respuesta
+        $dificultad = $this->obtenerDificultad($preguntaId);
+        $correcta = $this->esCorrecta($preguntaId, $respuestaId);
+        $this->registrarRespuesta($preguntaId, $correcta);
+
+        if (!$correcta) {
+            $this->finalizar($partida['id'], 'error');
+            return self::RESP_ERROR;
+        }
+
+        $this->sumarPuntos($partida['id'], self::puntosPorDificultad($dificultad));
+
+        if (!$this->asignarSiguientePregunta($partida)) {
+            return self::RESP_SIN_PREGUNTAS; // asignarSiguientePregunta ya cerró la partida
+        }
+        return self::RESP_CORRECTA;
+    }
+
+    // ------------------------------------------------------------------
+    // DIFICULTAD Y PUNTAJE
+    // ------------------------------------------------------------------
+
+    // Devuelve 'facil', 'media' o 'dificil' según cuántas veces se respondió mal la pregunta.
+    // Cuanto más se falla, más difícil. Con pocas respuestas registradas todavía es 'facil'
+    public static function calcularDificultad($respondidas, $incorrectas)
+    {
+        $respondidas = (int)$respondidas;
+        if ($respondidas < self::RESPUESTAS_MINIMAS || (int)$incorrectas / $respondidas < self::ERROR_MAXIMO_FACIL) {
+            return 'facil';
+        }
+        if ((int)$incorrectas / $respondidas >= self::ERROR_MINIMO_DIFICIL) {
+            return 'dificil';
+        }
+        return 'media';
+    }
+
+    // Dificultad actual de una pregunta, calculada con sus contadores
+    public function obtenerDificultad($preguntaId)
+    {
+        $fila = $this->database->queryOne(
+            "SELECT veces_respondida, veces_incorrecta FROM preguntas WHERE id = ?",
+            [(int)$preguntaId]
+        );
+        return self::calcularDificultad($fila['veces_respondida'] ?? 0, $fila['veces_incorrecta'] ?? 0);
+    }
+
+    // Puntos que suma un acierto según la dificultad: fácil 1, media 1.5, difícil 2
+    public static function puntosPorDificultad($dificultad)
+    {
+        return self::PUNTOS[$dificultad] ?? self::PUNTOS['facil'];
+    }
+
+    // Anota la respuesta en la estadística de la pregunta. Solo se llama cuando el usuario realmente respondió:
+    // quedarse sin tiempo no cuenta
+    public function registrarRespuesta($preguntaId, $fueCorrecta)
+    {
+        $this->database->execute(
+            "UPDATE preguntas
+             SET veces_respondida = veces_respondida + 1, veces_incorrecta = veces_incorrecta + ?
+             WHERE id = ?",
+            [$fueCorrecta ? 0 : 1, (int)$preguntaId]
+        );
+    }
+
+    // Suma puntos al puntaje de la partida
+    public function sumarPuntos($partidaId, $puntos)
+    {
+        $this->database->execute(
+            "UPDATE partidas SET puntaje = puntaje + ? WHERE id = ?",
+            [number_format((float)$puntos, 1, '.', ''), (int)$partidaId]
+        );
+    }
+
+    // Suma de los puntajes de todas las partidas del usuario
+    public function puntajeTotal($usuarioId)
+    {
+        $fila = $this->database->queryOne(
+            "SELECT COALESCE(SUM(puntaje), 0) AS total FROM partidas WHERE usuario_id = ?",
+            [(int)$usuarioId]
+        );
+        return (float)($fila['total'] ?? 0);
+    }
+
+    // Da formato a los puntos para mostrarlos
+    public static function formatearPuntos($puntos)
+    {
+        $texto = number_format((float)$puntos, 1, ',', '.');
+        return substr($texto, -2) === ',0' ? substr($texto, 0, -2) : $texto;
     }
 
     // Cierra la partida. Libera "activa_usuario_id" para que el usuario pueda empezar otra.

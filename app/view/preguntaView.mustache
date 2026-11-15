@@ -14,6 +14,9 @@
         </div>
 
         <div class="partida-cuerpo">
+            {{#cambio_categoria}}
+                <div class="aviso-categoria">🎉 ¡Terminaste todas las preguntas de <strong>{{categoria_anterior}}</strong>! Seguís con <strong>{{categoria}}</strong>.</div>
+            {{/cambio_categoria}}
             <h3 class="partida-enunciado">{{enunciado}}</h3>
 
             <form method="post" action="/partida/responder" id="form-respuesta">

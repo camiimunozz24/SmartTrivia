@@ -2,7 +2,6 @@
 
 namespace app\controller;
 
-use Log;
 use Redirect;
 use Request;
 use app\model\PartidaModel;
@@ -56,9 +55,13 @@ class PartidaController
             Redirect::to('/partida/iniciar');
             return;
         }
+        // Cada partida nueva empieza con el historial vacío: las preguntas solo se evitan repetir dentro de una misma partida
+        $this->model->borrarHistorialVistas($usuarioId);
 
         $categoria = $this->model->sortearCategoria();
-        $pregunta = $categoria === null ? null : $this->model->elegirPregunta($usuarioId, $categoria['id']);
+        $pregunta = $categoria === null
+            ? null
+            : $this->model->obtenerPreguntaAleatoria($usuarioId, $categoria['id']);
         if ($pregunta === null) { // No hay ninguna categoría con preguntas activas
             Redirect::to('/partida/iniciar?error=sin_preguntas');
             return;
@@ -137,13 +140,22 @@ class PartidaController
 
         $restanteMs = $this->model->milisegundosRestantes($partida);
 
+        // Aviso de "terminaste la categoría, seguís con otra"
+        $aviso = $_SESSION['aviso_categoria'] ?? null;
+        unset($_SESSION['aviso_categoria']);
+        if ($aviso !== null && $aviso['token'] !== $partida['pregunta_token']) {
+            $aviso = null;
+        }
+
         // Empaqueta toda la información y renderiza
         $data = [
             "categoria" => $pregunta['categoria'],
             "color" => $pregunta['color'],
+            "cambio_categoria" => $aviso !== null,
+            "categoria_anterior" => $aviso['anterior'] ?? '',
             "enunciado" => $pregunta['enunciado'],
             "respuestas" => $respuestas,
-            "puntaje" => $partida['puntaje'],
+            "puntaje" => PartidaModel::formatearPuntos($partida['puntaje']),
             "token" => $partida['pregunta_token'],
             "limite_segundos" => PartidaModel::TIEMPO_PREGUNTA_MS / 1000,
             "restante_ms" => $restanteMs,
@@ -154,7 +166,7 @@ class PartidaController
         $this->render->renderiza("pregunta", $data);
     }
 
-    // Recibe la respuesta. Todas las reglas se validan acá, en el servidor
+    // Recibe la respuesta
     public function responder()
     {
         $usuarioId = $_SESSION['usuario_id'];
@@ -170,54 +182,27 @@ class PartidaController
             return;
         }
 
-        if ($this->model->esperandoPregunta($partida)) { // Todavía no vio la pregunta (el reloj no empezó)
-            Redirect::to('/partida/pregunta');
-            return;
-        }
+        $resultado = $this->model->procesarRespuesta(
+            $partida,
+            (string)Request::post('token', ''),
+            (int)Request::post('respuesta', 0)
+        );
 
-        // REGLA: cada pregunta tiene un código de un solo uso. Si no coincide, es una pregunta vieja
-        // (otra pestaña, botón "atrás", formulario viejo): se ignora sin castigo y vuelve a la pregunta actual.
-        $token = (string)Request::post('token', '');
-        if (!hash_equals($partida['pregunta_token'], $token)) {
-            Redirect::to('/partida/pregunta');
-            return;
-        }
+        switch ($resultado) {
+            case PartidaModel::RESP_CORRECTA:
+                $this->avisarSiHuboCambioDeCategoria($usuarioId, $partida);
+                Redirect::to('/partida/pregunta');
+                break;
 
-        $preguntaId = (int)$partida['pregunta_id'];
-        $respuestaId = (int)Request::post('respuesta', 0);
-        $transcurrido = $this->model->milisegundosTranscurridos($partida);
-
-        // REGLA: sin respuesta. Solo vale como "se acabó el tiempo" si el reloj del servidor realmente llegó al límite
-        if ($respuestaId === 0) {
-            if ($transcurrido >= PartidaModel::TIEMPO_PREGUNTA_MS - 1000) {
-                $this->model->finalizar($partida['id'], 'tiempo');
+            case PartidaModel::RESP_ERROR:
+            case PartidaModel::RESP_TIEMPO:
+            case PartidaModel::RESP_SIN_PREGUNTAS:
                 Redirect::to('/partida/resultado');
-            } else {
-                Redirect::to('/partida/pregunta'); // Mandó el formulario antes de tiempo: se ignora
-            }
-            return;
-        }
+                break;
 
-        // REGLA: una sola respuesta por pregunta. Gasta el código: si dos peticiones llegan juntas, solo una pasa
-        if (!$this->model->consumirPregunta($partida['id'], $token)) {
-            Redirect::to('/partida/pregunta');
-            return;
+            default: // RESP_IGNORADA
+                Redirect::to('/partida/pregunta');
         }
-
-        if ($this->model->esCorrecta($preguntaId, $respuestaId)) {
-            $this->model->sumarPunto($partida['id']);
-            $partida['puntaje']++;
-            if (!$this->model->asignarSiguientePregunta($partida)) { // Se quedó sin preguntas
-                Redirect::to('/partida/resultado');
-                return;
-            }
-            Redirect::to('/partida/pregunta');
-            return;
-        }
-
-        // Se equivocó: la partida termina
-        $this->model->finalizar($partida['id'], 'error');
-        Redirect::to('/partida/resultado');
     }
 
     // Muestra el final de la partida: por qué terminó, la respuesta correcta y los puntos ganados
@@ -251,8 +236,8 @@ class PartidaController
             "motivo_error" => $motivo === 'error',
             "motivo_tiempo" => $motivo === 'tiempo',
             "motivo_sin_preguntas" => $motivo === 'sin_preguntas',
-            "puntaje" => (int)$partida['puntaje'],
-            "puntos_texto" => (int)$partida['puntaje'] === 1 ? 'punto' : 'puntos',
+            "puntaje" => PartidaModel::formatearPuntos($partida['puntaje']),
+            "puntos_texto" => (float)$partida['puntaje'] === 1.0 ? 'punto' : 'puntos',
             "limite_segundos" => PartidaModel::TIEMPO_PREGUNTA_MS / 1000,
         ];
 
@@ -266,6 +251,23 @@ class PartidaController
 
         $this->noGuardarEnCache();
         $this->render->renderiza("resultado", $data);
+    }
+
+    // Si la partida pasó a otra categoría, lo anota en la sesión para avisarlo en la pantalla de esa pregunta
+    private function avisarSiHuboCambioDeCategoria($usuarioId, $partidaAnterior)
+    {
+        $actual = $this->model->partidaActiva($usuarioId);
+        if ($actual === null || $actual['pregunta_token'] === null) {
+            return;
+        }
+        if ((int)$actual['categoria_id'] === (int)$partidaAnterior['categoria_id']) {
+            return;
+        }
+        $anterior = $this->model->obtenerCategoria($partidaAnterior['categoria_id']);
+        $_SESSION['aviso_categoria'] = [
+            'anterior' => $anterior['nombre'] ?? '',
+            'token' => $actual['pregunta_token'],
+        ];
     }
 
     // Cada categoría usa un dibujo de public/img/iconos/. El archivo se llama como la categoría, sin tildes,

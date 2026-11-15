@@ -47,3 +47,7 @@ CREATE TABLE preguntas_vistas(
      FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
      FOREIGN KEY (pregunta_id) REFERENCES preguntas(id) ON DELETE CASCADE
 );
+/* Estadística para calcular la dificultad de cada pregunta */
+ALTER TABLE preguntas
+    ADD COLUMN veces_respondida INT NOT NULL DEFAULT 0,
+    ADD COLUMN veces_incorrecta INT NOT NULL DEFAULT 0;

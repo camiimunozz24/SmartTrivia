@@ -6,6 +6,7 @@
     <div class="home-card home-hero w3-margin-top">
         <div class="home-icono">🧠</div>
         <h2>¡Hola{{#usuario}}, @{{usuario}}{{/usuario}}!</h2>
+         {{#usuario}}<div class="home-puntaje" title="Puntos sumados en todas tus partidas">⭐ {{puntaje_total}} pts</div>{{/usuario}}
         <p class="home-subtitulo">Girá la ruleta y demostrá cuánto sabés.</p>
         {{#en_curso}}
             <p class="home-subtitulo">Tenés una partida en curso. ¡El reloj sigue corriendo!</p>
@@ -22,15 +23,17 @@
         <div class="home-pasos">
             <div class="home-paso">
                 <span class="home-paso-num">1</span>
-                <p>Girá la ruleta y te toca una categoría</p>
+                <h3>Girá la ruleta</h3>
+                <p>Te toca una categoría al azar.</p>
             </div>
             <div class="home-paso">
                 <span class="home-paso-num">2</span>
-                <p>Respondé en {{limite_segundos}} segundos: cada acierto suma 1 punto</p>
-            </div>
+                <h3>Respondé a tiempo</h3>
+                <p>Tenés {{limite_segundos}} segundos por pregunta.</p>            </div>
             <div class="home-paso">
                 <span class="home-paso-num">3</span>
-                <p>Si te equivocás o se acaba el tiempo, la partida termina</p>
+                <h3>Sumá puntos</h3>
+                <p>Cada asierto suma puntos según la dificultad.</p>
             </div>
         </div>
     </div>

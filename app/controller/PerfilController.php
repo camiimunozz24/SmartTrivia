@@ -80,7 +80,7 @@ class PerfilController
             "ciudad" => $usuario['ciudad'],
             "foto_perfil" => $usuario['foto_perfil'],
             "tiene_foto" => !empty($usuario['foto_perfil']),
-            "puntaje_acumulado" => $stats['puntaje_acumulado'],
+            "puntaje_acumulado" => \app\model\PartidaModel::formatearPuntos($stats['puntaje_acumulado']),
             "partidas_jugadas" => $stats['partidas_jugadas'],
             "qr_url" => $qrUrl,
             "url_perfil" => $urlPerfil,
