@@ -27,7 +27,11 @@ $esAdmin = ($_SESSION['rol'] ?? '') === 'admin';
 
         <nav class="nav-links">
             <a href="/home/show" class="nav-link<?= $activo('/home') ?>">Inicio</a>
+            <a href="/ranking/show" class="nav-link<?= $activo('/ranking') ?>">Rankings</a>
             <a href="/partida/iniciar" class="nav-link<?= $activo('/partida') ?>">Jugar</a>
+            <?php if ($esAdmin): ?>
+                <a href="/admin/show" class="nav-link<?= $activo('/admin') ?>">Admin</a>
+            <?php endif; ?>
             <span class="nav-separador"></span>
             <a href="/perfil/show" class="nav-perfil<?= $activo('/perfil') ?>">
                 <?php if (!empty($_SESSION['foto_perfil'])): ?>

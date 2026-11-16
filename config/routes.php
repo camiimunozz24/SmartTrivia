@@ -18,6 +18,7 @@ return [
 
 
     'partida' => 'usuario',
+    'ranking' => 'usuario',
     // Rutas exclusivas para editores (también accesibles por admin)
     // 'preguntas' => 'editor',
 

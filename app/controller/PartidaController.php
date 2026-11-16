@@ -140,6 +140,11 @@ class PartidaController
 
         $restanteMs = $this->model->milisegundosRestantes($partida);
 
+        // Información de racha diaria y multiplicador activo
+        $rachaDiaria = $this->model->obtenerRachaDiaria($usuarioId);
+        $multiplicadorActivo = $rachaDiaria['multiplicador'];
+        $rachaActualPartida = (int)($partida['racha_actual'] ?? 0);
+
         // Aviso de "terminaste la categoría, seguís con otra"
         $aviso = $_SESSION['aviso_categoria'] ?? null;
         unset($_SESSION['aviso_categoria']);
@@ -156,6 +161,11 @@ class PartidaController
             "enunciado" => $pregunta['enunciado'],
             "respuestas" => $respuestas,
             "puntaje" => PartidaModel::formatearPuntos($partida['puntaje']),
+            "racha_actual" => $rachaActualPartida,
+            "tiene_racha" => $rachaActualPartida > 0,
+            "multiplicador" => number_format($multiplicadorActivo, 2, ',', '.') . 'x',
+            "tiene_multiplicador" => $multiplicadorActivo > 1.00,
+            "racha_dias" => $rachaDiaria['racha_dias'],
             "token" => $partida['pregunta_token'],
             "limite_segundos" => PartidaModel::TIEMPO_PREGUNTA_MS / 1000,
             "restante_ms" => $restanteMs,
@@ -230,6 +240,8 @@ class PartidaController
         ];
         [$icono, $titulo] = $titulos[$motivo] ?? ['🏁', 'Fin de la partida'];
 
+        $rachaDiaria = $this->model->obtenerRachaDiaria($usuarioId);
+
         $data = [
             "icono" => $icono,
             "titulo" => $titulo,
@@ -238,6 +250,10 @@ class PartidaController
             "motivo_sin_preguntas" => $motivo === 'sin_preguntas',
             "puntaje" => PartidaModel::formatearPuntos($partida['puntaje']),
             "puntos_texto" => (float)$partida['puntaje'] === 1.0 ? 'punto' : 'puntos',
+            "respuestas_correctas" => (int)($partida['respuestas_correctas'] ?? 0),
+            "mejor_racha" => (int)($partida['mejor_racha'] ?? 0),
+            "racha_dias" => $rachaDiaria['racha_dias'],
+            "multiplicador_aplicado" => number_format((float)($partida['multiplicador_aplicado'] ?? 1.0), 2, ',', '.') . 'x',
             "limite_segundos" => PartidaModel::TIEMPO_PREGUNTA_MS / 1000,
         ];
 

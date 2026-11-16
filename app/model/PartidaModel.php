@@ -370,7 +370,36 @@ class PartidaModel
             return self::RESP_ERROR;
         }
 
-        $this->sumarPuntos($partida['id'], self::puntosPorDificultad($dificultad));
+        $usuarioId = (int)$partida['usuario_id'];
+
+        // Actualizamos la racha diaria de acceso (entra todos los días y acierta al menos una pregunta)
+        $rachaInfo = $this->actualizarRachaDiaria($usuarioId);
+        $multiplicador = $rachaInfo['multiplicador'];
+
+        // Puntos según dificultad con multiplicador de racha
+        $puntosBase = self::puntosPorDificultad($dificultad);
+        $puntosGanados = round($puntosBase * $multiplicador, 2);
+
+        // Actualizamos partida: puntaje, respuestas_correctas, racha_actual, mejor_racha
+        $nuevaRacha = (int)($partida['racha_actual'] ?? 0) + 1;
+        $mejorRacha = max((int)($partida['mejor_racha'] ?? 0), $nuevaRacha);
+
+        $this->database->execute(
+            "UPDATE partidas
+             SET puntaje = puntaje + ?,
+                 respuestas_correctas = respuestas_correctas + 1,
+                 racha_actual = ?,
+                 mejor_racha = ?,
+                 multiplicador_aplicado = ?
+             WHERE id = ?",
+            [$puntosGanados, $nuevaRacha, $mejorRacha, $multiplicador, (int)$partida['id']]
+        );
+
+        // Actualizamos mejor racha histórica del usuario si se superó
+        $this->database->execute(
+            "UPDATE usuarios SET mejor_racha_historica = ? WHERE id = ? AND mejor_racha_historica < ?",
+            [$nuevaRacha, $usuarioId, $nuevaRacha]
+        );
 
         if (!$this->asignarSiguientePregunta($partida)) {
             return self::RESP_SIN_PREGUNTAS; // asignarSiguientePregunta ya cerró la partida
@@ -446,8 +475,111 @@ class PartidaModel
     // Da formato a los puntos para mostrarlos
     public static function formatearPuntos($puntos)
     {
-        $texto = number_format((float)$puntos, 1, ',', '.');
-        return substr($texto, -2) === ',0' ? substr($texto, 0, -2) : $texto;
+        $val = round((float)$puntos, 2);
+        if (floor($val) == $val) {
+            return (string)(int)$val;
+        }
+        $texto = number_format($val, 2, ',', '.');
+        return rtrim(rtrim($texto, '0'), ',');
+    }
+
+    // ------------------------------------------------------------------
+    // RACHA DE ACCESO DIARIA Y MULTIPLICADORES
+    // ------------------------------------------------------------------
+
+    // Escala de multiplicador según días consecutivos entrando y acertando
+    public static function calcularMultiplicadorRacha($rachaDias)
+    {
+        $dias = (int)$rachaDias;
+        if ($dias <= 0) return 1.00;
+        if ($dias === 1) return 1.05;
+        if ($dias === 2) return 1.10;
+        if ($dias === 3) return 1.15;
+        if ($dias === 4) return 1.20;
+        if ($dias === 5) return 1.30;
+        if ($dias === 6) return 1.40;
+        return 1.50; // Día 7 o más
+    }
+
+    // Actualiza la racha de días consecutivos si el usuario acierta hoy
+    public function actualizarRachaDiaria($usuarioId)
+    {
+        $usuario = $this->database->queryOne(
+            "SELECT racha_dias, ultimo_dia_acierto FROM usuarios WHERE id = ?",
+            [(int)$usuarioId]
+        );
+
+        $hoy = date('Y-m-d');
+        $ayer = date('Y-m-d', strtotime('-1 day'));
+        $ultimo = $usuario['ultimo_dia_acierto'] ?? null;
+        $rachaActual = (int)($usuario['racha_dias'] ?? 0);
+
+        if ($ultimo === $hoy) {
+            // Ya acertó hoy: mantiene la racha del día
+            $nuevaRacha = max(1, $rachaActual);
+        } elseif ($ultimo === $ayer) {
+            // Acertó ayer: suma un nuevo día a la racha
+            $nuevaRacha = $rachaActual + 1;
+        } else {
+            // Es su primer día o se salteó un día: arranca en 1
+            $nuevaRacha = 1;
+        }
+
+        if ($ultimo !== $hoy || $rachaActual !== $nuevaRacha) {
+            $this->database->execute(
+                "UPDATE usuarios SET racha_dias = ?, ultimo_dia_acierto = ? WHERE id = ?",
+                [$nuevaRacha, $hoy, (int)$usuarioId]
+            );
+        }
+
+        return [
+            'racha_dias' => $nuevaRacha,
+            'multiplicador' => self::calcularMultiplicadorRacha($nuevaRacha)
+        ];
+    }
+
+    // Consulta la racha diaria activa sin alterarla
+    public function obtenerRachaDiaria($usuarioId)
+    {
+        $usuario = $this->database->queryOne(
+            "SELECT racha_dias, ultimo_dia_acierto FROM usuarios WHERE id = ?",
+            [(int)$usuarioId]
+        );
+        if (!$usuario) {
+            return ['racha_dias' => 0, 'multiplicador' => 1.00, 'siguiente_multiplicador' => 1.05, 'jugo_hoy' => false];
+        }
+
+        $hoy = date('Y-m-d');
+        $ayer = date('Y-m-d', strtotime('-1 day'));
+        $ultimo = $usuario['ultimo_dia_acierto'] ?? null;
+        $racha = (int)($usuario['racha_dias'] ?? 0);
+
+        $jugoHoy = ($ultimo === $hoy);
+        if (!$jugoHoy && $ultimo !== $ayer) {
+            $racha = 0;
+        }
+
+        $siguienteRacha = $jugoHoy ? $racha : ($racha + 1);
+
+        return [
+            'racha_dias' => $racha,
+            'multiplicador' => self::calcularMultiplicadorRacha($racha),
+            'siguiente_multiplicador' => self::calcularMultiplicadorRacha($siguienteRacha),
+            'jugo_hoy' => $jugoHoy
+        ];
+    }
+
+    // Últimas partidas jugadas por el usuario (para el lobby o perfil)
+    public function obtenerUltimasPartidas($usuarioId, $limite = 5)
+    {
+        $sql = "SELECT p.id, p.puntaje, p.respuestas_correctas, p.mejor_racha, p.motivo_fin,
+                       p.fecha_inicio, p.fecha_fin, c.nombre AS categoria, c.color
+                FROM partidas p
+                LEFT JOIN categorias c ON c.id = p.categoria_id
+                WHERE p.usuario_id = ? AND p.estado = 'terminada'
+                ORDER BY p.id DESC
+                LIMIT " . (int)$limite;
+        return $this->database->queryAll($sql, [(int)$usuarioId]);
     }
 
     // Cierra la partida. Libera "activa_usuario_id" para que el usuario pueda empezar otra.
@@ -456,7 +588,7 @@ class PartidaModel
         $this->database->execute(
             "UPDATE partidas
              SET estado = 'terminada', activa_usuario_id = NULL, pregunta_token = NULL,
-                 motivo_fin = ?, fecha_fin = CURRENT_TIMESTAMP
+                 racha_actual = 0, motivo_fin = ?, fecha_fin = CURRENT_TIMESTAMP
              WHERE id = ? AND estado = 'en_curso'",
             [$motivo, (int)$partidaId]
         );

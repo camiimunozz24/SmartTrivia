@@ -20,6 +20,18 @@
 
             <p class="resultado-puntos">Sumaste {{puntaje}} {{puntos_texto}}</p>
 
+            <div style="display:flex; justify-content:center; gap:16px; margin: 12px 0 20px; flex-wrap:wrap;">
+                <span class="chip-puntaje" style="background:#f0fdf4; color:#166534; padding:6px 14px; border-radius:20px; font-weight:600;">
+                    ✅ {{respuestas_correctas}} correctas
+                </span>
+                <span class="chip-puntaje" style="background:#eef2ff; color:#3730a3; padding:6px 14px; border-radius:20px; font-weight:600;">
+                    ⚡ Mayor racha: {{mejor_racha}}
+                </span>
+                <span class="chip-puntaje" style="background:#fffbeb; color:#92400e; padding:6px 14px; border-radius:20px; font-weight:600;">
+                    🔥 Racha diaria: {{racha_dias}} días ({{multiplicador_aplicado}})
+                </span>
+            </div>
+
             <div class="botones">
                 <a href="/partida/iniciar" class="boton boton-primario">🎮 Jugar de nuevo</a>
                 <a href="/home/show" class="boton boton-gris">🏠 Inicio</a>

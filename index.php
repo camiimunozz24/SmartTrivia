@@ -12,8 +12,8 @@ $controller = Request::get("controller", null);
 $method     = Request::get("method", null);
 
 
-// 1. Si entra a la raíz de la app (sin controlador en la URL)
-if ($controller === null) {
+// 1. Si entra a la raíz de la app (sin controlador en la URL o directo a index.php)
+if ($controller === null || $controller === '' || $controller === 'index.php') {
     if (isset($_SESSION['usuario_id'])) {
         Redirect::to('/home'); // Si está logueado, va al home
     } else {

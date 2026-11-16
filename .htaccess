@@ -61,5 +61,7 @@ Options -Indexes
 
     # ── REGLA 2: /controller (sin method) ────────────────
     # Si solo viene el controller, el router usa el método default ('show').
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^([^/]+)$         index.php?controller=$1           [L,QSA]
 </IfModule>

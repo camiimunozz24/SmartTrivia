@@ -5,7 +5,15 @@
 
         <div class="partida-cabecera">
             <span>{{categoria}}</span>
-            <span class="chip-puntaje">⭐ {{puntaje}}</span>
+            <div style="display:flex; gap:8px; align-items:center;">
+                {{#tiene_racha}}
+                    <span class="chip-puntaje" style="background:#eef2ff; color:#3730a3;" title="Racha de aciertos en esta partida">⚡ {{racha_actual}}</span>
+                {{/tiene_racha}}
+                {{#tiene_multiplicador}}
+                    <span class="chip-puntaje" style="background:#fef3c7; color:#92400e;" title="Multiplicador por racha de acceso ({{racha_dias}} días)">🔥 {{multiplicador}}</span>
+                {{/tiene_multiplicador}}
+                <span class="chip-puntaje">⭐ {{puntaje}}</span>
+            </div>
         </div>
 
         <div class="reloj" id="reloj" data-restante="{{restante_ms}}" data-limite="{{limite_segundos}}">

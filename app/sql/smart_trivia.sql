@@ -24,6 +24,11 @@ ALTER TABLE `usuarios`
 ALTER TABLE `usuarios`
     ADD COLUMN `rol`
         ENUM('usuario', 'editor', 'admin') NOT NULL DEFAULT 'usuario';
+/* Racha diaria de acceso y mejor racha de aciertos */
+ALTER TABLE `usuarios`
+    ADD COLUMN `racha_dias` INT NOT NULL DEFAULT 0,
+    ADD COLUMN `ultimo_dia_acierto` DATE NULL,
+    ADD COLUMN `mejor_racha_historica` INT NOT NULL DEFAULT 0;
 /***************************************/
 -- Usuarios de prueba para testing / corrección
 -- Usuario: admin | Contraseña: admin1234

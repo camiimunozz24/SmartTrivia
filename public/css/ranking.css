@@ -1,0 +1,232 @@
+/* ==========================================================================
+   ESTILOS PARA RANKING
+   ========================================================================== */
+
+.ranking-contenedor {
+    max-width: 900px;
+    margin: 24px auto 40px;
+    padding: 0 16px;
+}
+
+.ranking-header {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 24px 28px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    border-top: 5px solid #1e56a0;
+    margin-bottom: 20px;
+}
+
+.ranking-header h2 {
+    margin: 0 0 6px;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #0f2a52;
+}
+
+.ranking-header p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.95rem;
+}
+
+/* Tabs de navegación entre rankings */
+.ranking-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    margin-bottom: 20px;
+}
+
+.ranking-tab {
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.ranking-tab:hover {
+    background: #f1f5f9;
+    color: #0f2a52;
+}
+
+.ranking-tab.activo {
+    background: #1e56a0;
+    color: #ffffff;
+    border-color: #1e56a0;
+    box-shadow: 0 2px 8px rgba(30, 86, 160, 0.25);
+}
+
+/* Card principal de tabla */
+.ranking-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+}
+
+.ranking-tabla {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ranking-tabla th {
+    background: #f8fafc;
+    color: #475569;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 14px 16px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.ranking-tabla td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #edf2f7;
+    vertical-align: middle;
+}
+
+.ranking-fila {
+    transition: background 0.15s ease;
+}
+
+.ranking-fila:hover {
+    background: #f8fafc;
+}
+
+.ranking-fila.es-propio {
+    background: #eff6ff !important;
+    border-left: 4px solid #1e56a0;
+}
+
+/* Puesto y medallas */
+.puesto-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 1rem;
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.puesto-oro {
+    background: #fef3c7;
+    color: #92400e;
+    box-shadow: 0 0 0 2px #fcd34d;
+}
+
+.puesto-plata {
+    background: #f1f5f9;
+    color: #475569;
+    box-shadow: 0 0 0 2px #cbd5e1;
+}
+
+.puesto-bronce {
+    background: #ffedd5;
+    color: #9a3412;
+    box-shadow: 0 0 0 2px #fdba74;
+}
+
+/* Info del jugador */
+.jugador-celda {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.jugador-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e2e8f0;
+    flex-shrink: 0;
+}
+
+.jugador-avatar-placeholder {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.jugador-texto {
+    line-height: 1.25;
+}
+
+.jugador-nombre {
+    font-weight: 600;
+    color: #0f2a52;
+    text-decoration: none;
+    font-size: 0.95rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.jugador-nombre:hover {
+    color: #1e56a0;
+    text-decoration: underline;
+}
+
+.jugador-usuario {
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+.badge-tu {
+    background: #1e56a0;
+    color: #fff;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.valor-destacado {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #0f2a52;
+}
+
+.boton-ver-perfil {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #334155;
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.15s ease;
+}
+
+.boton-ver-perfil:hover {
+    background: #1e56a0;
+    color: #ffffff;
+}
+
+@media (max-width: 640px) {
+    .ranking-tabla th:nth-child(3),
+    .ranking-tabla td:nth-child(3) {
+        display: none; /* Oculta ubicación en pantallas chicas */
+    }
+}

@@ -6,11 +6,13 @@ use app\controller\AdminController;
 use app\controller\HomeController;
 use app\controller\LoginController;
 use app\controller\PerfilController;
+use app\controller\RankingController;
 use app\controller\RegistroController;
 use app\controller\PartidaController;
 use app\model\PartidaModel;
 use app\model\LoginModel;
 use app\model\PerfilModel;
+use app\model\RankingModel;
 use app\model\RegistroModel;
 use app\validator\CamposObligatorios;
 use app\validator\EmailDisponible;
@@ -65,6 +67,11 @@ class Configuration
     public function getAdminController()
     {
         return new AdminController($this->getRender());
+    }
+
+    public function getRankingController()
+    {
+        return new RankingController($this->getRender(), new RankingModel($this->getDatabase()));
     }
 
     public function getError404Controller(){

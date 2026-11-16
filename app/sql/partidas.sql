@@ -25,6 +25,10 @@ CREATE TABLE IF NOT EXISTS partidas (
     UNIQUE KEY uq_partida_activa (activa_usuario_id),
     KEY idx_partidas_usuario (usuario_id, estado)
 );
--- Para que el puntaje pueda tener medio punto (1.5)
+-- Para que el puntaje pueda tener decimales (multiplicadores de racha) y registrar aciertos y rachas
 ALTER TABLE partidas
-    MODIFY puntaje DECIMAL(6,1) NOT NULL DEFAULT 0;
+    MODIFY puntaje DECIMAL(8,2) NOT NULL DEFAULT 0,
+    ADD COLUMN respuestas_correctas INT NOT NULL DEFAULT 0,
+    ADD COLUMN mejor_racha INT NOT NULL DEFAULT 0,
+    ADD COLUMN racha_actual INT NOT NULL DEFAULT 0,
+    ADD COLUMN multiplicador_aplicado DECIMAL(4,2) NOT NULL DEFAULT 1.00;

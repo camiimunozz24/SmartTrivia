@@ -59,6 +59,7 @@ class PerfilController
 
         // Estadísticas de juego
         $stats = $this->model->obtenerEstadisticas($usuario['id']);
+        $historial = $this->model->obtenerHistorialPartidas($usuario['id'], 10);
 
         // URL pública para el código QR
         $protocolo = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
@@ -80,8 +81,15 @@ class PerfilController
             "ciudad" => $usuario['ciudad'],
             "foto_perfil" => $usuario['foto_perfil'],
             "tiene_foto" => !empty($usuario['foto_perfil']),
-            "puntaje_acumulado" => \app\model\PartidaModel::formatearPuntos($stats['puntaje_acumulado']),
+            "puntaje_acumulado" => $stats['puntaje_acumulado_formato'],
             "partidas_jugadas" => $stats['partidas_jugadas'],
+            "preguntas_correctas" => $stats['preguntas_correctas'],
+            "mayor_racha" => $stats['mayor_racha'],
+            "racha_dias" => $stats['racha_dias'],
+            "multiplicador" => $stats['multiplicador'],
+            "tiene_racha_dias" => $stats['racha_dias'] > 0,
+            "historial_partidas" => $historial,
+            "tiene_historial" => count($historial) > 0,
             "qr_url" => $qrUrl,
             "url_perfil" => $urlPerfil,
             "es_propio" => $esPropio,

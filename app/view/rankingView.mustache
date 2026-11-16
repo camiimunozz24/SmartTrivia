@@ -1,0 +1,124 @@
+<link rel="stylesheet" href="/public/css/ranking.css">
+
+<div class="ranking-contenedor">
+
+    <!-- Encabezado -->
+    <div class="ranking-header">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+            <div>
+                <h2>🏆 {{titulo}}</h2>
+                <p>{{descripcion}}</p>
+            </div>
+            <a href="/partida/iniciar" class="w3-button w3-green w3-round-large" style="font-weight:600;">
+                🎮 Jugar partida
+            </a>
+        </div>
+    </div>
+
+    <!-- Pestañas de filtros -->
+    <nav class="ranking-tabs" aria-label="Filtros de ranking">
+        <a href="/ranking/show?tipo=puntos_mes" class="ranking-tab {{#tab_puntos_mes}}activo{{/tab_puntos_mes}}">
+            📅 Puntos este mes
+        </a>
+        <a href="/ranking/show?tipo=racha_mes" class="ranking-tab {{#tab_racha_mes}}activo{{/tab_racha_mes}}">
+            ⚡ Mayor racha este mes
+        </a>
+        <a href="/ranking/show?tipo=puntos_total" class="ranking-tab {{#tab_puntos_total}}activo{{/tab_puntos_total}}">
+            🌟 Puntos histórico
+        </a>
+        <a href="/ranking/show?tipo=racha_total" class="ranking-tab {{#tab_racha_total}}activo{{/tab_racha_total}}">
+            🔥 Racha histórica
+        </a>
+    </nav>
+
+    <!-- Tabla del Ranking -->
+    <div class="ranking-card">
+        {{#hay_jugadores}}
+            <div style="overflow-x:auto;">
+                <table class="ranking-tabla">
+                    <thead>
+                        <tr>
+                            <th style="width:70px; text-align:center;">Puesto</th>
+                            <th>Jugador</th>
+                            <th>Ubicación</th>
+                            <th style="text-align:center;">Partidas</th>
+                            <th style="text-align:right;">
+                                {{#es_columna_puntos}}Puntos{{/es_columna_puntos}}
+                                {{^es_columna_puntos}}Mayor Racha{{/es_columna_puntos}}
+                            </th>
+                            <th style="width:110px; text-align:center;">Perfil</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#ranking}}
+                            <tr class="ranking-fila {{#es_usuario_actual}}es-propio{{/es_usuario_actual}}">
+                                <!-- Puesto y Medalla -->
+                                <td style="text-align:center;">
+                                    <span class="puesto-badge {{#es_primero}}puesto-oro{{/es_primero}} {{#es_segundo}}puesto-plata{{/es_segundo}} {{#es_tercero}}puesto-bronce{{/es_tercero}}">
+                                        {{#medalla}}{{medalla}}{{/medalla}}
+                                        {{^medalla}}{{puesto}}°{{/medalla}}
+                                    </span>
+                                </td>
+
+                                <!-- Datos del Jugador -->
+                                <td>
+                                    <div class="jugador-celda">
+                                        {{#tiene_foto}}
+                                            <img src="/public/img/perfiles/{{foto_perfil}}" alt="{{nombre_completo}}" class="jugador-avatar">
+                                        {{/tiene_foto}}
+                                        {{^tiene_foto}}
+                                            <div class="jugador-avatar-placeholder">👤</div>
+                                        {{/tiene_foto}}
+                                        <div class="jugador-texto">
+                                            <a href="/perfil/show?id={{id}}" class="jugador-nombre">
+                                                {{nombre_completo}}
+                                                {{#es_usuario_actual}}<span class="badge-tu">Tú</span>{{/es_usuario_actual}}
+                                            </a>
+                                            <div class="jugador-usuario">@{{usuario}}</div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!-- Ubicación -->
+                                <td style="color:#64748b; font-size:0.88rem;">
+                                    📍 {{ubicacion}}
+                                </td>
+
+                                <!-- Partidas Jugadas -->
+                                <td style="text-align:center; color:#475569; font-weight:500;">
+                                    {{partidas}}
+                                </td>
+
+                                <!-- Valor destacado (Puntos o Racha) -->
+                                <td style="text-align:right;">
+                                    <span class="valor-destacado">
+                                        {{valor_formato}}
+                                    </span>
+                                </td>
+
+                                <!-- Botón Ver Perfil -->
+                                <td style="text-align:center;">
+                                    <a href="/perfil/show?id={{id}}" class="boton-ver-perfil" title="Ver perfil de {{usuario}}">
+                                        Ver perfil
+                                    </a>
+                                </td>
+                            </tr>
+                        {{/ranking}}
+                    </tbody>
+                </table>
+            </div>
+        {{/hay_jugadores}}
+
+        {{^hay_jugadores}}
+            <div style="padding: 48px 24px; text-align:center; color:#64748b;">
+                <div style="font-size:48px; margin-bottom:12px;">🎮</div>
+                <h3 style="color:#0f2a52; margin:0 0 8px; font-weight:700;">Aún no hay puntuaciones registradas</h3>
+                <p style="margin:0 0 20px; font-size:0.95rem;">Sé el primer jugador en completar una partida y encabezar este ranking.</p>
+                <a href="/partida/iniciar" class="w3-button w3-green w3-round-large" style="font-weight:600;">
+                    Empezar a jugar
+                </a>
+            </div>
+        {{/hay_jugadores}}
+    </div>
+
+</div>
