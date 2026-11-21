@@ -45,6 +45,7 @@
         function terminar() {
             if (terminado) { return; }
             terminado = true;
+            Sonidos.efecto('listo');
             document.getElementById('ruleta-titulo').textContent = '¡Listo!';
             mensaje.textContent = '¡Te tocó ' + categoria + '!';
             mensaje.classList.add('visible');
@@ -65,6 +66,7 @@
         setTimeout(terminar, 5500); // por si el navegador no avisa que terminó la animación
         requestAnimationFrame(function () {
             requestAnimationFrame(function () {
+            Sonidos.ruleta(5);
                 rueda.style.transform = 'rotate(' + destino + 'deg)';
                 girarIconos(destino);
             });

@@ -5,7 +5,8 @@
         <div class="partida-cabecera"><span>Fin de la partida</span></div>
 
         <div class="partida-cuerpo" style="text-align:center;">
-            <div class="resultado-icono">{{icono}}</div>
+            <div class="resultado-icono" id="resultado-icono"
+                 data-motivo="{{#motivo_error}}error{{/motivo_error}}{{#motivo_tiempo}}error{{/motivo_tiempo}}{{#motivo_sin_preguntas}}fin{{/motivo_sin_preguntas}}">{{icono}}</div>
             <h2 class="resultado-titulo">{{titulo}}</h2>
 
             {{#motivo_tiempo}}<p class="resultado-texto">Tenías {{limite_segundos}} segundos para responder y se terminaron.</p>{{/motivo_tiempo}}
@@ -39,3 +40,10 @@
         </div>
     </div>
 </div>
+<script>
+    (function () {
+        try { sessionStorage.removeItem('st_respondio'); } catch (e) {}
+        var motivo = document.getElementById('resultado-icono').dataset.motivo;
+        if (motivo) { Sonidos.efecto(motivo); }
+    })();
+</script>

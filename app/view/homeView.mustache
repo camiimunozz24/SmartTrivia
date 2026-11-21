@@ -9,14 +9,14 @@
         {{#usuario}}<div class="home-puntaje" title="Puntos sumados en todas tus partidas">⭐ {{puntaje_total}} pts acumulados</div>{{/usuario}}
         <p class="home-subtitulo">Girá la ruleta, respondé contra el reloj y subí en el ranking.</p>
 
-        <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-top:8px;">
+        <div class="home-acciones" style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-top:8px;">
             {{#en_curso}}
                 <a href="/partida/pregunta" class="w3-button w3-green w3-large w3-round-large home-btn-jugar">▶ Continuar partida</a>
             {{/en_curso}}
             {{^en_curso}}
                 <a href="/partida/iniciar" class="w3-button w3-green w3-large w3-round-large home-btn-jugar">🎮 Jugar</a>
             {{/en_curso}}
-            <a href="/ranking/show" class="w3-button w3-blue w3-large w3-round-large" style="font-weight:600; padding:12px 24px;">🏆 Ver Rankings</a>
+            <a href="/ranking/show" class="w3-button w3-blue w3-large w3-round-large home-btn-ranking" style="font-weight:600; padding:12px 24px;">🏆 Ver Rankings</a>
         </div>
     </div>
 

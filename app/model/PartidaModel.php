@@ -14,7 +14,7 @@ class PartidaModel
     // ---- DIFICULTAD Y PUNTOS ----
     const RESPUESTAS_MINIMAS = 5;      // Con menos respuestas que estas la pregunta cuenta como "fácil"
     const ERROR_MAXIMO_FACIL = 0.30;   // Menos de 30 % de respuestas incorrectas = fácil
-    const ERROR_MINIMO_DIFICIL = 0.60; // 60 % o más = difícil (entre las dos = media)
+    const ERROR_MINIMO_DIFICIL = 0.70; // 70 % o más = difícil (entre las dos = media)
     const PUNTOS = ['facil' => 1.0, 'media' => 1.5, 'dificil' => 2.0];
 
     // ---- RESULTADOS POSIBLES AL PROCESAR UNA RESPUESTA ----

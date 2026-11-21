@@ -14,6 +14,11 @@ $esAdmin = ($_SESSION['rol'] ?? '') === 'admin';
     <title>SmartTrivia</title>
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     <link rel="stylesheet" href="/public/css/app.css">
+    <?php if ($logueado): ?>
+        <script src="/public/js/sonidos.js"></script>
+    <?php else: ?>
+        <script>try { sessionStorage.removeItem('st_pos'); } catch (e) {}</script>
+    <?php endif; ?>
 </head>
 <body>
 
