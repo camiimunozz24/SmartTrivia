@@ -1,0 +1,41 @@
+<link rel="stylesheet" href="/public/css/login.css">
+<link rel="stylesheet" href="/public/css/perfil.css">
+
+<div class="w3-content perfil" style="max-width:760px">
+    <div class="card-trivia-perfil w3-margin-top">
+
+        <!-- Cabecera del Panel Editor -->
+        <div class="perfil-cabecera">
+            <div class="perfil-avatar-placeholder" style="background:#e0f2fe; color:#0369a1;">✏️</div>
+
+            <div class="perfil-titulos">
+                <h2>Panel de Editor</h2>
+                <p class="perfil-subtitulo">SmartTrivia · Espacio reservado para el rol Editor</p>
+                <span class="perfil-badge" style="background-color: #0284c7; color: white;">
+                    Rol: {{rol}}
+                </span>
+            </div>
+        </div>
+
+        <!-- Espacio reservado para futuras herramientas de edición -->
+        <section class="seccion" style="margin-top: 20px;">
+            <div style="background:#f0f9ff; border:1px dashed #38bdf8; border-radius:10px; padding:24px; text-align:center;">
+                <div style="font-size:36px; margin-bottom:8px;">🛠️</div>
+                <h4 style="margin:0 0 8px; color:#0c4a6e; font-weight:700;">Módulo de Editor listo para desarrollar</h4>
+                <p style="margin:0; color:#475569; font-size:0.95rem;">
+                    Esta sección está configurada con permisos exclusivos para los roles <strong>editor</strong> y <strong>admin</strong>.
+                    Acá se podrán agregar las herramientas de gestión de preguntas, categorías y reportes.
+                </p>
+            </div>
+        </section>
+
+        {{#es_admin}}
+        <div style="margin-top:16px; text-align:right;">
+            <a href="/admin/show" class="w3-button w3-blue w3-round" style="text-decoration:none; font-weight:600;">
+                ← Volver al Panel de Administración
+            </a>
+        </div>
+        {{/es_admin}}
+
+    </div>
+</div>

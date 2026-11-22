@@ -20,7 +20,11 @@ return [
     'partida' => 'usuario',
     'ranking' => 'usuario',
     // Rutas exclusivas para editores (también accesibles por admin)
-    // 'preguntas' => 'editor',
+    'editor'    => 'editor',
 
-    'admin'     => 'admin'
+    // Rutas exclusivas para administradores (y Control Maestro)
+    'admin'     => 'admin',
+
+    // Rutas exclusivas para Control Maestro (gestión de roles y baneos)
+    'maestro'   => 'maestro'
 ];

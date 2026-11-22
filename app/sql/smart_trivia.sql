@@ -8,7 +8,7 @@ CREATE TABLE usuarios (
 /*se agrega para registro con email*/
 ALTER TABLE `usuarios`
     ADD COLUMN `estado`
-        ENUM('pendiente','activo') NOT NULL DEFAULT 'pendiente';
+        ENUM('pendiente','activo','baneado') NOT NULL DEFAULT 'pendiente';
 ALTER TABLE `usuarios`
     ADD COLUMN `token_validacion`
         VARCHAR(255) NULL AFTER `estado`;
@@ -23,7 +23,7 @@ ALTER TABLE `usuarios`
 /*Se agrega rol*/
 ALTER TABLE `usuarios`
     ADD COLUMN `rol`
-        ENUM('usuario', 'editor', 'admin') NOT NULL DEFAULT 'usuario';
+        ENUM('usuario', 'editor', 'admin', 'maestro') NOT NULL DEFAULT 'usuario';
 /* Racha diaria de acceso y mejor racha de aciertos */
 ALTER TABLE `usuarios`
     ADD COLUMN `racha_dias` INT NOT NULL DEFAULT 0,
@@ -41,4 +41,14 @@ INSERT INTO `usuarios`
 (`usuario`, `email`, `password`, `nombre_completo`, `fecha_nacimiento`, `genero`, `pais`, `ciudad`, `foto_perfil`, `estado`, `rol`)
 VALUES
     ('usuario', 'usuario@smarttrivia.com', '$2y$10$wjwyAmsuCa6UkUIFdeQZv.Oll.D2CzVFHd1p/TKOtc5Enr43WkN8S', 'Usuario Prueba', '2000-01-01', 'Prefiero no cargarlo', 'Argentina', 'Buenos Aires', '', 'activo', 'usuario');
+-- Usuario: editor | Contraseña: editor1234
+INSERT INTO `usuarios`
+(`usuario`, `email`, `password`, `nombre_completo`, `fecha_nacimiento`, `genero`, `pais`, `ciudad`, `foto_perfil`, `estado`, `rol`)
+VALUES
+    ('editor', 'editor@smarttrivia.com', '$2y$10$/AuZYyhNgGib7FeCAjuqde6xlNIFN1M32rOEsVWG5XJJSpYp0MAg2', 'Editor SmartTrivia', '2000-01-01', 'Prefiero no cargarlo', 'Argentina', 'Buenos Aires', '', 'activo', 'editor');
+-- Usuario: maestro | Contraseña: maestro1234
+INSERT INTO `usuarios`
+(`usuario`, `email`, `password`, `nombre_completo`, `fecha_nacimiento`, `genero`, `pais`, `ciudad`, `foto_perfil`, `estado`, `rol`)
+VALUES
+    ('maestro', 'maestro@smarttrivia.com', '$2y$10$eO4x0KF5vhoL.pTMwUzwxeG9KV4zTSO/gbNSXCOl99NmgNzSByLB2', 'Control Maestro SmartTrivia', '2000-01-01', 'Prefiero no cargarlo', 'Argentina', 'Buenos Aires', '', 'activo', 'maestro');
 /***************************************/

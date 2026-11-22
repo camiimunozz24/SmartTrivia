@@ -65,9 +65,10 @@ if ($permiso !== 'publica' && !isset($_SESSION['usuario_id'])) {
 }
 // 5. Validación centralizada de roles y jerarquías
 $rolesPermitidos = [
-    'admin'   => ['admin'],                     // Solo administradores
-    'editor'  => ['editor', 'admin'],           // Editores y administradores
-    'usuario' => ['usuario', 'editor', 'admin'] // Cualquier rol con sesión activa
+    'maestro' => ['maestro'],                              // Solo Control Maestro
+    'admin'   => ['admin', 'maestro'],                     // Administradores y Control Maestro
+    'editor'  => ['editor', 'admin', 'maestro'],           // Editores, Administradores y Control Maestro
+    'usuario' => ['usuario', 'editor', 'admin', 'maestro'] // Cualquier rol con sesión activa
 ];
 if (isset($rolesPermitidos[$permiso])) {
     $rolActual = $_SESSION['rol'] ?? '';

@@ -1,0 +1,90 @@
+<link rel="stylesheet" href="/public/css/login.css">
+<link rel="stylesheet" href="/public/css/perfil.css">
+
+<div class="w3-content perfil" style="max-width:860px">
+    <div class="card-trivia-perfil w3-margin-top">
+
+        <div class="perfil-cabecera" style="justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div style="display:flex; align-items:center; gap:14px;">
+                <div class="perfil-avatar-placeholder">📜</div>
+                <div class="perfil-titulos">
+                    <h2>{{#es_propio}}Tu Historial Completo{{/es_propio}}{{^es_propio}}Historial de @{{usuario}}{{/es_propio}}</h2>
+                    <p class="perfil-subtitulo">{{nombre_completo}} · Registro privado de partidas jugadas</p>
+                </div>
+            </div>
+            <a href="{{url_volver_perfil}}" class="w3-button w3-light-gray w3-round" style="text-decoration:none; font-weight:600;">
+                ← Volver al perfil
+            </a>
+        </div>
+
+        <!-- Resumen -->
+        <div class="perfil-stats" style="margin-top:20px;">
+            <div class="stat-card stat-puntos">
+                <span class="stat-icono">🏆</span>
+                <div class="stat-info">
+                    <div class="stat-valor">{{puntaje_acumulado}} pts</div>
+                    <div class="stat-label">Puntaje total</div>
+                </div>
+            </div>
+            <div class="stat-card stat-partidas">
+                <span class="stat-icono">🎮</span>
+                <div class="stat-info">
+                    <div class="stat-valor">{{partidas_jugadas}}</div>
+                    <div class="stat-label">Partidas jugadas</div>
+                </div>
+            </div>
+            <div class="stat-card" style="background:#f0fdf4; border:1px solid #bbf7d0;">
+                <span class="stat-icono">✅</span>
+                <div class="stat-info">
+                    <div class="stat-valor">{{preguntas_correctas}}</div>
+                    <div class="stat-label">Aciertos totales</div>
+                </div>
+            </div>
+            <div class="stat-card" style="background:#fef3c7; border:1px solid #fde68a;">
+                <span class="stat-icono">⚡</span>
+                <div class="stat-info">
+                    <div class="stat-valor">{{mayor_racha}} seguidas</div>
+                    <div class="stat-label">Mayor racha</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla completa -->
+        <section class="seccion" style="margin-top:20px;">
+            {{#tiene_historial}}
+                <div style="overflow-x:auto;">
+                    <table class="w3-table w3-striped w3-bordered" style="font-size:0.9rem;">
+                        <thead>
+                            <tr style="background:#f1f5f9; color:#475569; font-size:0.8rem; text-transform:uppercase;">
+                                <th>Fecha</th>
+                                <th>Categoría</th>
+                                <th>Puntos</th>
+                                <th>Mult.</th>
+                                <th>Aciertos</th>
+                                <th>Mayor Racha</th>
+                                <th>Resultado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{#historial_partidas}}
+                            <tr>
+                                <td style="font-size:0.85rem; color:#64748b; white-space:nowrap;">{{fecha}}</td>
+                                <td><span style="border-left:3px solid {{color}}; padding-left:6px; font-weight:500;">{{categoria}}</span></td>
+                                <td><strong style="color:#0f2a52;">+{{puntaje}}</strong></td>
+                                <td style="color:#b45309; font-weight:600;">{{multiplicador}}</td>
+                                <td>✅ {{respuestas_correctas}}</td>
+                                <td>⚡ {{mejor_racha}}</td>
+                                <td><span class="w3-tag w3-round w3-light-gray" style="font-size:0.75rem;">{{motivo_texto}}</span></td>
+                            </tr>
+                            {{/historial_partidas}}
+                        </tbody>
+                    </table>
+                </div>
+            {{/tiene_historial}}
+            {{^tiene_historial}}
+                <p style="color:#64748b; margin:12px 0; font-size:0.95rem;">Todavía no hay partidas registradas.</p>
+            {{/tiene_historial}}
+        </section>
+
+    </div>
+</div>

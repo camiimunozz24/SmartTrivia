@@ -8,7 +8,7 @@ ALTER TABLE `usuarios`
     ADD COLUMN `mejor_racha_historica` INT NOT NULL DEFAULT 0;
 
 ALTER TABLE `partidas`
-    MODIFY `puntaje` DECIMAL(8,2) NOT NULL DEFAULT 0,
+    MODIFY `puntaje` INT NOT NULL DEFAULT 0,
     ADD COLUMN `respuestas_correctas` INT NOT NULL DEFAULT 0,
     ADD COLUMN `mejor_racha` INT NOT NULL DEFAULT 0,
     ADD COLUMN `racha_actual` INT NOT NULL DEFAULT 0,

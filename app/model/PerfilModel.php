@@ -43,18 +43,21 @@ class PerfilModel
 
         $mayorRacha = max((int)($fila['mayor_racha'] ?? 0), (int)($usuario['mejor_racha_historica'] ?? 0));
 
-        // Racha de días de acceso activo
+        // Racha de días de acceso activo (misma lógica que PartidaModel::obtenerRachaDiaria)
         $rachaDias = (int)($usuario['racha_dias'] ?? 0);
         $ultimo = $usuario['ultimo_dia_acierto'] ?? null;
         $hoy = date('Y-m-d');
         $ayer = date('Y-m-d', strtotime('-1 day'));
-        if ($ultimo !== $hoy && $ultimo !== $ayer) {
+        $jugoHoy = ($ultimo === $hoy);
+        $jugoAyer = ($ultimo === $ayer);
+        if (!$jugoHoy && !$jugoAyer) {
             $rachaDias = 0;
         }
-        $multiplicador = \app\model\PartidaModel::calcularMultiplicadorRacha($rachaDias);
+        $diaParaMultiplicador = $jugoHoy ? $rachaDias : ($jugoAyer ? ($rachaDias + 1) : 1);
+        $multiplicador = \app\model\PartidaModel::calcularMultiplicadorRacha($diaParaMultiplicador);
 
         return [
-            "puntaje_acumulado" => (float)($fila['puntaje'] ?? 0),
+            "puntaje_acumulado" => (int)round((float)($fila['puntaje'] ?? 0)),
             "puntaje_acumulado_formato" => \app\model\PartidaModel::formatearPuntos($fila['puntaje'] ?? 0),
             "partidas_jugadas" => (int)($fila['partidas'] ?? 0),
             "preguntas_correctas" => (int)($fila['correctas'] ?? 0),
@@ -64,17 +67,20 @@ class PerfilModel
         ];
     }
 
-    // Historial de partidas jugadas con detalle para mostrar en el perfil
-    public function obtenerHistorialPartidas($usuarioId, $limite = 10)
+    // Historial de partidas jugadas con detalle para mostrar en el perfil o historial extendido.
+    // Si $limite es null, trae el historial completo sin recorte.
+    public function obtenerHistorialPartidas($usuarioId, $limite = 3)
     {
         try {
-            $sql = "SELECT p.id, p.puntaje, p.respuestas_correctas, p.mejor_racha, p.motivo_fin,
+            $sql = "SELECT p.id, p.puntaje, p.respuestas_correctas, p.mejor_racha, p.multiplicador_aplicado, p.motivo_fin,
                            p.fecha_inicio, p.fecha_fin, c.nombre AS categoria, c.color
                     FROM partidas p
                     LEFT JOIN categorias c ON c.id = p.categoria_id
                     WHERE p.usuario_id = ? AND p.estado = 'terminada'
-                    ORDER BY p.id DESC
-                    LIMIT " . (int)$limite;
+                    ORDER BY p.id DESC";
+            if ($limite !== null) {
+                $sql .= " LIMIT " . (int)$limite;
+            }
             $filas = $this->database->queryAll($sql, [(int)$usuarioId]);
             $resultado = [];
             foreach ($filas as $fila) {
@@ -89,6 +95,7 @@ class PerfilModel
                     'puntaje' => \app\model\PartidaModel::formatearPuntos($fila['puntaje']),
                     'respuestas_correctas' => (int)$fila['respuestas_correctas'],
                     'mejor_racha' => (int)$fila['mejor_racha'],
+                    'multiplicador' => number_format((float)($fila['multiplicador_aplicado'] ?? 1.0), 2, ',', '.') . 'x',
                     'categoria' => $fila['categoria'] ?? 'Varias',
                     'color' => $fila['color'] ?? '#1E56A0',
                     'motivo_texto' => $motivoTexto,

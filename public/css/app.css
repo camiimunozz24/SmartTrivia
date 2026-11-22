@@ -43,11 +43,30 @@ body {
 .nav-link:hover, .nav-salir:hover { background: rgb(255 255 255 / .15); color: #fff; }
 .nav-link.activo { background: rgb(255 255 255 / .22); color: #fff; }
 .nav-separador { width: 1px; height: 26px; background: rgb(255 255 255 / .25); margin: 0 8px; }
+.nav-perfil-wrap { position: relative; display: inline-flex; align-items: center; }
 .nav-perfil {
     display: flex; align-items: center; gap: 8px; color: #fff; text-decoration: none;
     padding: 4px 12px 4px 4px; border-radius: 999px; background: rgb(255 255 255 / .12); font-weight: 600; font-size: .92rem;
+    border: none; cursor: pointer; font-family: inherit; transition: background .15s; white-space: nowrap;
 }
-.nav-perfil:hover, .nav-perfil.activo { background: rgb(255 255 255 / .25); }
+.nav-perfil:hover, .nav-perfil.activo, .nav-perfil-wrap.abierto .nav-perfil { background: rgb(255 255 255 / .25); }
+.nav-caret { font-size: .78rem; opacity: .85; transition: transform .15s; }
+.nav-perfil-wrap.abierto .nav-caret { transform: rotate(180deg); }
+.nav-dropdown {
+    display: none; position: absolute; right: 0; top: calc(100% + 10px); min-width: 240px;
+    background: #ffffff; border: 1px solid var(--borde); border-radius: 12px;
+    box-shadow: 0 12px 28px rgb(15 23 42 / .22); padding: 6px; z-index: 2500;
+}
+.nav-perfil-wrap.abierto .nav-dropdown { display: flex; flex-direction: column; gap: 2px; }
+.nav-dropdown-item {
+    display: block; padding: 9px 12px; border-radius: 8px; color: var(--texto);
+    text-decoration: none; font-size: .9rem; font-weight: 600; white-space: nowrap; transition: background .12s, color .12s;
+}
+.nav-dropdown-item:hover { background: #eff6ff; color: #1d4ed8; }
+.nav-dropdown-item.activo { background: #e0e7ff; color: #3730a3; }
+.nav-dropdown-maestro { color: #6d28d9; }
+.nav-dropdown-maestro:hover { background: #f3e8ff; color: #5b21b6; }
+.nav-dropdown-sep { height: 1px; background: var(--borde); margin: 4px 6px; }
 .nav-perfil img, .nav-avatar {
     width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid #fff;
     display: inline-flex; align-items: center; justify-content: center; background: #1e5aa8; font-size: 16px;
@@ -73,7 +92,13 @@ body {
     .nav-toggle:checked ~ .nav-links { display: flex; }
     .nav-link, .nav-salir, .nav-boton { text-align: center; padding: 12px; }
     .nav-separador { width: auto; height: 1px; margin: 6px 0; }
-    .nav-perfil { justify-content: center; padding: 8px; }
+    .nav-perfil-wrap { width: 100%; }
+    .nav-perfil { justify-content: center; padding: 8px; width: 100%; }
+    .nav-dropdown { position: static; margin-top: 6px; box-shadow: none; background: rgb(255 255 255 / .08); border-color: rgb(255 255 255 / .15); }
+    .nav-dropdown-item { color: #e0e7ff; text-align: center; }
+    .nav-dropdown-item:hover, .nav-dropdown-item.activo { background: rgb(255 255 255 / .18); color: #fff; }
+    .nav-dropdown-maestro { color: #ddd6fe; }
+    .nav-dropdown-sep { background: rgb(255 255 255 / .2); }
 }
 
 /* ---------- Pie ---------- */

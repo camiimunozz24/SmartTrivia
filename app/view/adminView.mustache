@@ -1,58 +1,79 @@
 <link rel="stylesheet" href="/public/css/login.css">
 <link rel="stylesheet" href="/public/css/perfil.css">
 
-<div class="w3-content perfil" style="max-width:760px">
+<div class="w3-content perfil" style="max-width:860px">
     <div class="card-trivia-perfil w3-margin-top">
 
         <!-- Cabecera del Panel Admin -->
-        <div class="perfil-cabecera">
-            <div class="perfil-avatar-placeholder">⚙️</div>
-
-            <div class="perfil-titulos">
-                <h2>Panel de Administración</h2>
-                <p class="perfil-subtitulo">SmartTrivia Admin System</p>
-                <span class="perfil-badge" style="background-color: #d9534f; color: white;">
-                    ★ Zona Restringida
-                </span>
+        <div class="perfil-cabecera" style="justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div style="display:flex; align-items:center; gap:16px;">
+                <div class="perfil-avatar-placeholder">⚙️</div>
+                <div class="perfil-titulos">
+                    <h2>Panel de Administración</h2>
+                    <p class="perfil-subtitulo">SmartTrivia · Visibilidad y supervisión general (@{{usuario}})</p>
+                    <span class="perfil-badge" style="background-color: #d9534f; color: white;">
+                        ★ Zona Administración ({{rol}})
+                    </span>
+                </div>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <a href="/editor/show" class="w3-button w3-blue w3-round" style="text-decoration:none; font-weight:600;">
+                    ✏️ Panel Editor
+                </a>
+                {{#es_maestro}}
+                <a href="/maestro/show" class="w3-button w3-purple w3-round" style="text-decoration:none; font-weight:600;">
+                    👑 Control Maestro
+                </a>
+                {{/es_maestro}}
             </div>
         </div>
 
-        <!-- Estadísticas Rápidas de Prueba -->
-        <div class="perfil-stats">
+        <!-- Resumen General del Sistema -->
+        {{#resumen}}
+        <div class="perfil-stats" style="margin-top:20px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
             <div class="stat-card stat-puntos">
                 <span class="stat-icono">👥</span>
                 <div class="stat-info">
-                    <div class="stat-valor">Admin</div>
-                    <div class="stat-label">Rol actual</div>
+                    <div class="stat-valor">{{total_usuarios}}</div>
+                    <div class="stat-label">Usuarios</div>
                 </div>
             </div>
-
             <div class="stat-card stat-partidas">
-                <span class="stat-icono">🔒</span>
+                <span class="stat-icono">✏️</span>
                 <div class="stat-info">
-                    <div class="stat-valor">Activo</div>
-                    <div class="stat-label">Estado de sesión</div>
+                    <div class="stat-valor">{{total_editores}}</div>
+                    <div class="stat-label">Editores</div>
+                </div>
+            </div>
+            <div class="stat-card stat-puntos">
+                <span class="stat-icono">🎮</span>
+                <div class="stat-info">
+                    <div class="stat-valor">{{total_partidas}}</div>
+                    <div class="stat-label">Partidas jugadas</div>
+                </div>
+            </div>
+            <div class="stat-card stat-partidas">
+                <span class="stat-icono">❓</span>
+                <div class="stat-info">
+                    <div class="stat-valor">{{total_preguntas}}</div>
+                    <div class="stat-label">Preguntas activas</div>
                 </div>
             </div>
         </div>
+        {{/resumen}}
 
-        <!-- Sección Principal -->
-        <section class="seccion">
-            <h4 class="seccion-titulo"><span class="seccion-icono">🛠️</span> Configuración del Sistema</h4>
-            <p style="margin: 0 0 15px; color: #555; font-size: 14px;">
-                ¡Bienvenido al panel de administración!
-            </p>
-
-            <ul class="lista-datos">
-                <li class="dato-item">
-                    <div class="dato-label">Usuario Conectado</div>
-                    <div class="dato-valor">@{{usuario}}</div>
-                </li>
-                <li class="dato-item">
-                    <div class="dato-label">Permiso Asignado</div>
-                    <div class="dato-valor">{{rol}}</div>
-                </li>
-            </ul>
+        <!-- Cartel de herramientas pendientes del rol editor -->
+        <section class="seccion" style="margin-top: 24px;">
+            <div style="background:#fffbeb; border:1px dashed #f59e0b; border-radius:10px; padding:22px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+                <span style="font-size:36px;">⏳</span>
+                <div style="flex:1; min-width:220px;">
+                    <h4 style="margin:0 0 6px; color:#92400e; font-weight:700;">A espera de rol editor</h4>
+                    <p style="margin:0; color:#b45309; font-size:0.93rem;">
+                        Las herramientas propias de administración sobre los contenidos del editor (preguntas, categorías y reportes)
+                        se habilitarán en este panel una vez que el rol <strong>editor</strong> esté configurado.
+                    </p>
+                </div>
+            </div>
         </section>
 
     </div>

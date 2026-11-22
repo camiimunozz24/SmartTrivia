@@ -25,6 +25,8 @@ class LoginController
         $error = null;
         if (Request::get('login_error') !== null) { // Usuario o contraseña incorrectos
             $error = "Usuario o contraseña incorrectos.";
+        } elseif (Request::get('error_baneo') !== null) { // Cuenta suspendida / baneada
+            $error = "Tu cuenta se encuentra suspendida. Contactá a un administrador.";
         } elseif (Request::get('error_verificacion') !== null) { // Mail sin confirmar
             $error = "Tu cuenta aún no está activada. Por favor, revisá tu casilla de correo.";
         }
@@ -43,6 +45,10 @@ class LoginController
 
         if ($usuario === null) { // Credenciales incorrectas
             Redirect::to('/login/show?login_error=1');
+            return;
+        }
+        if ($usuario['estado'] === 'baneado') { // Cuenta baneada
+            Redirect::to('/login/show?error_baneo=1');
             return;
         }
         if ($usuario['estado'] !== 'activo') { // Mail sin confirmar

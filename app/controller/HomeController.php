@@ -33,7 +33,7 @@ class HomeController
                 $rachaDias = $rachaDiaria['racha_dias'];
                 $multiplicador = number_format($rachaDiaria['multiplicador'], 2, ',', '.') . 'x';
 
-                $filas = $this->partidaModel->obtenerUltimasPartidas($usuarioId, 5);
+                $filas = $this->partidaModel->obtenerUltimasPartidas($usuarioId, 3);
                 foreach ($filas as $fila) {
                     $motivo = $fila['motivo_fin'];
                     $motivoTexto = 'Completada';

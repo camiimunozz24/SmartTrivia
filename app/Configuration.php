@@ -3,12 +3,16 @@
 namespace app;
 use app\controller\Error404Controller;
 use app\controller\AdminController;
+use app\controller\EditorController;
 use app\controller\HomeController;
 use app\controller\LoginController;
+use app\controller\MaestroController;
 use app\controller\PerfilController;
 use app\controller\RankingController;
 use app\controller\RegistroController;
 use app\controller\PartidaController;
+use app\model\AdminModel;
+use app\model\MaestroModel;
 use app\model\PartidaModel;
 use app\model\LoginModel;
 use app\model\PerfilModel;
@@ -66,7 +70,17 @@ class Configuration
 
     public function getAdminController()
     {
-        return new AdminController($this->getRender());
+        return new AdminController($this->getRender(), new AdminModel($this->getDatabase()));
+    }
+
+    public function getEditorController()
+    {
+        return new EditorController($this->getRender());
+    }
+
+    public function getMaestroController()
+    {
+        return new MaestroController($this->getRender(), new MaestroModel($this->getDatabase()));
     }
 
     public function getRankingController()

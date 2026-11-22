@@ -140,9 +140,9 @@ class PartidaController
 
         $restanteMs = $this->model->milisegundosRestantes($partida);
 
-        // Información de racha diaria y multiplicador activo
+        // Información de racha diaria y multiplicador aplicado a esta partida
         $rachaDiaria = $this->model->obtenerRachaDiaria($usuarioId);
-        $multiplicadorActivo = $rachaDiaria['multiplicador'];
+        $multiplicadorActivo = (float)($partida['multiplicador_aplicado'] ?? $rachaDiaria['multiplicador']);
         $rachaActualPartida = (int)($partida['racha_actual'] ?? 0);
 
         // Aviso de "terminaste la categoría, seguís con otra"
@@ -249,7 +249,7 @@ class PartidaController
             "motivo_tiempo" => $motivo === 'tiempo',
             "motivo_sin_preguntas" => $motivo === 'sin_preguntas',
             "puntaje" => PartidaModel::formatearPuntos($partida['puntaje']),
-            "puntos_texto" => (float)$partida['puntaje'] === 1.0 ? 'punto' : 'puntos',
+            "puntos_texto" => (int)$partida['puntaje'] === 1 ? 'punto' : 'puntos',
             "respuestas_correctas" => (int)($partida['respuestas_correctas'] ?? 0),
             "mejor_racha" => (int)($partida['mejor_racha'] ?? 0),
             "racha_dias" => $rachaDiaria['racha_dias'],

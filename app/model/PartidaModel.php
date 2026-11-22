@@ -15,7 +15,7 @@ class PartidaModel
     const RESPUESTAS_MINIMAS = 5;      // Con menos respuestas que estas la pregunta cuenta como "fácil"
     const ERROR_MAXIMO_FACIL = 0.30;   // Menos de 30 % de respuestas incorrectas = fácil
     const ERROR_MINIMO_DIFICIL = 0.70; // 70 % o más = difícil (entre las dos = media)
-    const PUNTOS = ['facil' => 1.0, 'media' => 1.5, 'dificil' => 2.0];
+    const PUNTOS = ['facil' => 100, 'media' => 150, 'dificil' => 200];
 
     // ---- RESULTADOS POSIBLES AL PROCESAR UNA RESPUESTA ----
     const RESP_IGNORADA = 'ignorada';           // Petición vieja o inválida: no pasa nada
@@ -230,15 +230,19 @@ class PartidaModel
     }
 
     // Crea la partida junto con su primera pregunta en una sola operación.
+    // Guarda el multiplicador activo al inicio de la partida para aplicarlo a los puntos que gane.
     // Devuelve false si el usuario YA tenía una partida en curso (la base de datos lo impide con el índice único)
     public function crearPartida($usuarioId, $categoriaId, $pregunta)
     {
         $token = bin2hex(random_bytes(16));
+        $rachaDiaria = $this->obtenerRachaDiaria($usuarioId);
+        $multiplicadorInicial = $rachaDiaria['multiplicador'];
+
         try {
             $this->database->execute(
-                "INSERT INTO partidas (usuario_id, categoria_id, puntaje, estado, activa_usuario_id, pregunta_id, pregunta_token, pregunta_inicio_ms)
-                 VALUES (?, ?, 0, 'en_curso', ?, ?, ?, ?)",
-                [(int)$usuarioId, (int)$categoriaId, (int)$usuarioId, (int)$pregunta['id'], $token, -$this->ahoraMs()] // negativo = el reloj arranca cuando se vea la pregunta
+                "INSERT INTO partidas (usuario_id, categoria_id, puntaje, estado, activa_usuario_id, pregunta_id, pregunta_token, pregunta_inicio_ms, multiplicador_aplicado)
+                 VALUES (?, ?, 0, 'en_curso', ?, ?, ?, ?, ?)",
+                [(int)$usuarioId, (int)$categoriaId, (int)$usuarioId, (int)$pregunta['id'], $token, -$this->ahoraMs(), $multiplicadorInicial] // negativo = el reloj arranca cuando se vea la pregunta
             );
         } catch (\PDOException $e) {
             if ($e->getCode() === '23000') { // Violación de clave única: ya hay una partida en curso
@@ -372,13 +376,16 @@ class PartidaModel
 
         $usuarioId = (int)$partida['usuario_id'];
 
-        // Actualizamos la racha diaria de acceso (entra todos los días y acierta al menos una pregunta)
-        $rachaInfo = $this->actualizarRachaDiaria($usuarioId);
-        $multiplicador = $rachaInfo['multiplicador'];
+        // El multiplicador que aplica a esta partida es el que tenía el usuario al iniciarla
+        $multiplicador = (float)($partida['multiplicador_aplicado'] ?? 1.00);
 
-        // Puntos según dificultad con multiplicador de racha
+        // Puntos redondos (en centenares, sin decimales) según dificultad y multiplicador de la partida
         $puntosBase = self::puntosPorDificultad($dificultad);
-        $puntosGanados = round($puntosBase * $multiplicador, 2);
+        $puntosGanados = (int)round($puntosBase * $multiplicador);
+
+        // Actualizamos la racha diaria de acceso (entra todos los días y acierta al menos una pregunta)
+        // para que quede activa para la próxima partida / próximo día
+        $this->actualizarRachaDiaria($usuarioId);
 
         // Actualizamos partida: puntaje, respuestas_correctas, racha_actual, mejor_racha
         $nuevaRacha = (int)($partida['racha_actual'] ?? 0) + 1;
@@ -389,10 +396,9 @@ class PartidaModel
              SET puntaje = puntaje + ?,
                  respuestas_correctas = respuestas_correctas + 1,
                  racha_actual = ?,
-                 mejor_racha = ?,
-                 multiplicador_aplicado = ?
+                 mejor_racha = ?
              WHERE id = ?",
-            [$puntosGanados, $nuevaRacha, $mejorRacha, $multiplicador, (int)$partida['id']]
+            [$puntosGanados, $nuevaRacha, $mejorRacha, (int)$partida['id']]
         );
 
         // Actualizamos mejor racha histórica del usuario si se superó
@@ -453,12 +459,12 @@ class PartidaModel
         );
     }
 
-    // Suma puntos al puntaje de la partida
+    // Suma puntos al puntaje de la partida (enteros redondos)
     public function sumarPuntos($partidaId, $puntos)
     {
         $this->database->execute(
             "UPDATE partidas SET puntaje = puntaje + ? WHERE id = ?",
-            [number_format((float)$puntos, 1, '.', ''), (int)$partidaId]
+            [(int)round((float)$puntos), (int)$partidaId]
         );
     }
 
@@ -469,32 +475,27 @@ class PartidaModel
             "SELECT COALESCE(SUM(puntaje), 0) AS total FROM partidas WHERE usuario_id = ?",
             [(int)$usuarioId]
         );
-        return (float)($fila['total'] ?? 0);
+        return (int)round((float)($fila['total'] ?? 0));
     }
 
-    // Da formato a los puntos para mostrarlos
+    // Da formato a los puntos para mostrarlos (siempre enteros, sin decimales)
     public static function formatearPuntos($puntos)
     {
-        $val = round((float)$puntos, 2);
-        if (floor($val) == $val) {
-            return (string)(int)$val;
-        }
-        $texto = number_format($val, 2, ',', '.');
-        return rtrim(rtrim($texto, '0'), ',');
+        return number_format((int)round((float)$puntos), 0, ',', '.');
     }
 
     // ------------------------------------------------------------------
     // RACHA DE ACCESO DIARIA Y MULTIPLICADORES
     // ------------------------------------------------------------------
 
-    // Escala de multiplicador según días consecutivos entrando y acertando
+    // Escala de multiplicador según días consecutivos entrando y acertando:
+    // Día 1 de ingreso: 1.00x (sin bonus). Desde el día 2 en adelante aplica el multiplicador hasta 1.50x en día 7+.
     public static function calcularMultiplicadorRacha($rachaDias)
     {
         $dias = (int)$rachaDias;
-        if ($dias <= 0) return 1.00;
-        if ($dias === 1) return 1.05;
-        if ($dias === 2) return 1.10;
-        if ($dias === 3) return 1.15;
+        if ($dias <= 1) return 1.00;
+        if ($dias === 2) return 1.05;
+        if ($dias === 3) return 1.10;
         if ($dias === 4) return 1.20;
         if ($dias === 5) return 1.30;
         if ($dias === 6) return 1.40;
@@ -538,7 +539,8 @@ class PartidaModel
         ];
     }
 
-    // Consulta la racha diaria activa sin alterarla
+    // Consulta la racha diaria activa sin alterarla.
+    // Si jugó ayer y todavía no jugó hoy, el multiplicador para su partida de hoy ya corresponde al día siguiente de racha.
     public function obtenerRachaDiaria($usuarioId)
     {
         $usuario = $this->database->queryOne(
@@ -546,7 +548,7 @@ class PartidaModel
             [(int)$usuarioId]
         );
         if (!$usuario) {
-            return ['racha_dias' => 0, 'multiplicador' => 1.00, 'siguiente_multiplicador' => 1.05, 'jugo_hoy' => false];
+            return ['racha_dias' => 0, 'multiplicador' => 1.00, 'siguiente_multiplicador' => 1.00, 'jugo_hoy' => false];
         }
 
         $hoy = date('Y-m-d');
@@ -555,16 +557,22 @@ class PartidaModel
         $racha = (int)($usuario['racha_dias'] ?? 0);
 
         $jugoHoy = ($ultimo === $hoy);
-        if (!$jugoHoy && $ultimo !== $ayer) {
+        $jugoAyer = ($ultimo === $ayer);
+
+        if (!$jugoHoy && !$jugoAyer) {
             $racha = 0;
         }
 
-        $siguienteRacha = $jugoHoy ? $racha : ($racha + 1);
+        // Día efectivo para el multiplicador de la partida actual:
+        // - Si ya jugó hoy: su racha actual ($racha)
+        // - Si jugó ayer (vuelve al día siguiente): $racha + 1 (ej. día 2 -> 1.05x)
+        // - Si es día 1 nuevo o perdió racha: 1 (1.00x)
+        $diaParaMultiplicador = $jugoHoy ? $racha : ($jugoAyer ? ($racha + 1) : 1);
 
         return [
             'racha_dias' => $racha,
-            'multiplicador' => self::calcularMultiplicadorRacha($racha),
-            'siguiente_multiplicador' => self::calcularMultiplicadorRacha($siguienteRacha),
+            'multiplicador' => self::calcularMultiplicadorRacha($diaParaMultiplicador),
+            'siguiente_multiplicador' => self::calcularMultiplicadorRacha($diaParaMultiplicador + 1),
             'jugo_hoy' => $jugoHoy
         ];
     }

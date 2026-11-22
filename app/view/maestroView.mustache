@@ -1,0 +1,489 @@
+<link rel="stylesheet" href="/public/css/login.css">
+<link rel="stylesheet" href="/public/css/perfil.css">
+
+<style>
+    /* Estilos dedicados del panel Control Maestro */
+    .maestro-stats {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 20px;
+    }
+    .maestro-stat-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 14px 8px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+    .maestro-stat-icono { font-size: 24px; line-height: 1; margin-bottom: 6px; }
+    .maestro-stat-valor { font-size: 1.45rem; font-weight: 800; color: #0f172a; line-height: 1.1; }
+    .maestro-stat-label { font-size: 0.78rem; font-weight: 600; color: #475569; margin-top: 4px; word-break: break-word; }
+
+    /* Botones uniformes y alineados */
+    .maestro-acciones {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        flex-wrap: nowrap;
+    }
+    .maestro-acciones form { margin: 0; }
+    .maestro-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 32px;
+        padding: 0 10px;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        cursor: pointer;
+        color: #fff;
+        white-space: nowrap;
+        box-sizing: border-box;
+        transition: filter .15s;
+    }
+    .maestro-btn:hover { filter: brightness(0.92); }
+    .maestro-btn-staff-rol { width: 158px; }
+    .maestro-btn-quitar { width: 92px; background: #f97316; }
+    .maestro-btn-hist-rol { width: 120px; }
+    .maestro-btn-baneo { width: 92px; }
+    .maestro-btn-azul { background: #2563eb; }
+    .maestro-btn-celeste { background: #0284c7; }
+    .maestro-btn-indigo { background: #4338ca; }
+    .maestro-btn-rojo { background: #dc2626; }
+    .maestro-btn-verde { background: #16a34a; }
+
+    /* Formulario de creación perfectamente alineado */
+    .maestro-form-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        align-items: end;
+    }
+    .maestro-campo label {
+        display: block;
+        font-size: 0.8rem;
+        color: #475569;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+    .maestro-campo input,
+    .maestro-campo select,
+    .maestro-form-submit {
+        width: 100%;
+        height: 40px;
+        padding: 0 12px;
+        border-radius: 6px;
+        box-sizing: border-box;
+        font-size: 0.9rem;
+    }
+    .maestro-campo input,
+    .maestro-campo select {
+        border: 1px solid #cbd5e1;
+        background: #fff;
+        color: #0f172a;
+    }
+    .maestro-form-submit {
+        border: none;
+        background: #16a34a;
+        color: #fff;
+        font-weight: 700;
+        cursor: pointer;
+    }
+    .maestro-form-submit:hover { background: #15803d; }
+
+    /* Buscador de usuarios */
+    .maestro-buscar-form {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+    }
+    .maestro-buscar-input {
+        flex: 1;
+        min-width: 220px;
+        height: 40px;
+        padding: 0 14px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 0.92rem;
+        box-sizing: border-box;
+    }
+    .maestro-buscar-btn {
+        height: 40px;
+        padding: 0 18px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+    }
+
+    @media (max-width: 760px) {
+        .maestro-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .maestro-form-grid { grid-template-columns: 1fr; }
+        .maestro-acciones { flex-wrap: wrap; }
+    }
+</style>
+
+<div class="w3-content perfil" style="max-width:1020px">
+    <div class="card-trivia-perfil w3-margin-top">
+
+        <!-- Cabecera Control Maestro -->
+        <div class="perfil-cabecera" style="justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div style="display:flex; align-items:center; gap:16px;">
+                <div class="perfil-avatar-placeholder" style="background:#f3e8ff; color:#7c3aed;">👑</div>
+                <div class="perfil-titulos">
+                    <h2>Control Maestro</h2>
+                    <p class="perfil-subtitulo">Gestión exclusiva de roles, privilegios, baneos e historial de usuarios (@{{usuario}})</p>
+                    <span class="perfil-badge" style="background-color: #7c3aed; color: white;">
+                        👑 Nivel Máximo (Control Maestro)
+                    </span>
+                </div>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <a href="/admin/show" class="w3-button w3-red w3-round" style="text-decoration:none; font-weight:600;">⚙️ Panel Administrador</a>
+                <a href="/editor/show" class="w3-button w3-blue w3-round" style="text-decoration:none; font-weight:600;">✏️ Panel Editor</a>
+            </div>
+        </div>
+
+        {{#mensaje_ok}}
+            <div class="w3-panel w3-pale-green w3-border w3-border-green w3-round" style="padding:10px 14px; margin-top:16px;">
+                ✅ {{mensaje_ok}}
+            </div>
+        {{/mensaje_ok}}
+
+        {{#mensaje_error}}
+            <div class="w3-panel w3-pale-red w3-border w3-border-red w3-round" style="padding:10px 14px; margin-top:16px;">
+                ⚠️ {{mensaje_error}}
+            </div>
+        {{/mensaje_error}}
+
+        <!-- Tarjetas de resumen de usuarios -->
+        {{#resumen}}
+        <div class="maestro-stats">
+            <div class="maestro-stat-card" style="background:#f8fafc; border-color:#cbd5e1;">
+                <span class="maestro-stat-icono">👥</span>
+                <div class="maestro-stat-valor">{{total_usuarios}}</div>
+                <div class="maestro-stat-label">Total usuarios</div>
+            </div>
+            <div class="maestro-stat-card" style="background:#f0fdf4; border-color:#bbf7d0;">
+                <span class="maestro-stat-icono">🟢</span>
+                <div class="maestro-stat-valor">{{usuarios_activos}}</div>
+                <div class="maestro-stat-label">Usuarios activos</div>
+            </div>
+            <div class="maestro-stat-card" style="background:#eff6ff; border-color:#bfdbfe;">
+                <span class="maestro-stat-icono">✏️</span>
+                <div class="maestro-stat-valor">{{total_editores}}</div>
+                <div class="maestro-stat-label">Editores</div>
+            </div>
+            <div class="maestro-stat-card" style="background:#fef2f2; border-color:#fecaca;">
+                <span class="maestro-stat-icono">⚙️</span>
+                <div class="maestro-stat-valor">{{total_admins}}</div>
+                <div class="maestro-stat-label">Administradores</div>
+            </div>
+            <div class="maestro-stat-card" style="background:#fff1f2; border-color:#fda4af;">
+                <span class="maestro-stat-icono">🚫</span>
+                <div class="maestro-stat-valor">{{usuarios_baneados}}</div>
+                <div class="maestro-stat-label">Baneados</div>
+            </div>
+        </div>
+        {{/resumen}}
+
+        <!-- Buscar usuario por nombre -->
+        <section class="seccion" id="buscar-usuario" style="margin-top:24px;">
+            <h4 class="seccion-titulo"><span class="seccion-icono">🔍</span> Buscar usuario por nombre</h4>
+            <form method="get" action="/maestro/show" class="maestro-buscar-form">
+                <input type="text" name="q" value="{{busqueda}}" class="maestro-buscar-input" placeholder="Buscar por nombre de usuario, nombre completo o email..." required>
+                <button type="submit" class="maestro-buscar-btn" style="background:#1e56a0; color:#fff;">Buscar</button>
+                {{#hay_busqueda}}
+                    <a href="/maestro/show" class="maestro-buscar-btn" style="background:#e2e8f0; color:#334155;">Limpiar</a>
+                {{/hay_busqueda}}
+            </form>
+
+            {{#hay_busqueda}}
+                {{#hay_resultados_busqueda}}
+                    <div style="overflow-x:auto;">
+                        <table class="w3-table w3-striped w3-bordered" style="font-size:0.88rem;">
+                            <thead>
+                                <tr style="background:#f8fafc; color:#475569; font-size:0.78rem; text-transform:uppercase;">
+                                    <th>Usuario</th>
+                                    <th>Rol / Estado</th>
+                                    <th>Cambiar rol</th>
+                                    <th>Baneo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{#resultados_busqueda}}
+                                <tr>
+                                    <td style="vertical-align:middle;">
+                                        <a href="/perfil/show?id={{id}}" style="font-weight:600; color:#0f2a52; text-decoration:none;">@{{usuario}}</a>
+                                        <div style="font-size:0.78rem; color:#64748b;">{{nombre_completo}} · {{email}}</div>
+                                    </td>
+                                    <td style="vertical-align:middle; white-space:nowrap;">
+                                        <span style="background:{{badge_rol_color}}; color:#fff; padding:2px 9px; border-radius:999px; font-size:0.75rem; font-weight:600;">{{rol_label}}</span>
+                                        <span style="background:{{badge_estado_color}}; color:#fff; padding:2px 9px; border-radius:999px; font-size:0.75rem; font-weight:600; margin-left:4px;">{{estado}}</span>
+                                    </td>
+                                    <td style="vertical-align:middle;">
+                                        {{#es_maestro}}
+                                            <span style="color:#7c3aed; font-size:0.8rem; font-weight:600;">Protegido</span>
+                                        {{/es_maestro}}
+                                        {{^es_maestro}}
+                                            <div class="maestro-acciones">
+                                                {{^es_editor}}
+                                                <form method="post" action="/maestro/cambiarRol">
+                                                    <input type="hidden" name="usuario_id" value="{{id}}">
+                                                    <input type="hidden" name="rol" value="editor">
+                                                    <input type="hidden" name="q" value="{{busqueda}}">
+                                                    <button type="submit" class="maestro-btn maestro-btn-hist-rol maestro-btn-celeste">+ Editor</button>
+                                                </form>
+                                                {{/es_editor}}
+                                                {{^es_admin}}
+                                                <form method="post" action="/maestro/cambiarRol">
+                                                    <input type="hidden" name="usuario_id" value="{{id}}">
+                                                    <input type="hidden" name="rol" value="admin">
+                                                    <input type="hidden" name="q" value="{{busqueda}}">
+                                                    <button type="submit" class="maestro-btn maestro-btn-hist-rol maestro-btn-indigo">+ Administrador</button>
+                                                </form>
+                                                {{/es_admin}}
+                                                {{#tiene_privilegio}}
+                                                <form method="post" action="/maestro/cambiarRol">
+                                                    <input type="hidden" name="usuario_id" value="{{id}}">
+                                                    <input type="hidden" name="rol" value="usuario">
+                                                    <input type="hidden" name="q" value="{{busqueda}}">
+                                                    <button type="submit" class="maestro-btn maestro-btn-quitar">Quitar rol</button>
+                                                </form>
+                                                {{/tiene_privilegio}}
+                                            </div>
+                                        {{/es_maestro}}
+                                    </td>
+                                    <td style="vertical-align:middle;">
+                                        {{^es_maestro}}
+                                            {{#esta_baneado}}
+                                                <form method="post" action="/maestro/banear" style="margin:0;">
+                                                    <input type="hidden" name="usuario_id" value="{{id}}">
+                                                    <input type="hidden" name="accion" value="desbanear">
+                                                    <input type="hidden" name="q" value="{{busqueda}}">
+                                                    <button type="submit" class="maestro-btn maestro-btn-baneo maestro-btn-verde">Desbanear</button>
+                                                </form>
+                                            {{/esta_baneado}}
+                                            {{^esta_baneado}}
+                                                <form method="post" action="/maestro/banear" style="margin:0;" onsubmit="return confirm('¿Seguro que querés banear a @{{usuario}}?');">
+                                                    <input type="hidden" name="usuario_id" value="{{id}}">
+                                                    <input type="hidden" name="accion" value="banear">
+                                                    <input type="hidden" name="q" value="{{busqueda}}">
+                                                    <button type="submit" class="maestro-btn maestro-btn-baneo maestro-btn-rojo">Banear</button>
+                                                </form>
+                                            {{/esta_baneado}}
+                                        {{/es_maestro}}
+                                    </td>
+                                </tr>
+                                {{/resultados_busqueda}}
+                            </tbody>
+                        </table>
+                    </div>
+                {{/hay_resultados_busqueda}}
+                {{^hay_resultados_busqueda}}
+                    <p style="color:#64748b; font-size:0.9rem; margin:4px 0 0;">No se encontraron usuarios que coincidan con "<strong>{{busqueda}}</strong>".</p>
+                {{/hay_resultados_busqueda}}
+            {{/hay_busqueda}}
+        </section>
+
+        <!-- Lista rápida de Editores y Administradores -->
+        <section class="seccion" style="margin-top:24px;">
+            <h4 class="seccion-titulo"><span class="seccion-icono">🛡️</span> Editores y Administradores actuales</h4>
+            {{#hay_staff}}
+            <div style="overflow-x:auto;">
+                <table class="w3-table w3-striped w3-bordered" style="font-size:0.9rem;">
+                    <thead>
+                        <tr style="background:#f8fafc; color:#475569; font-size:0.8rem; text-transform:uppercase;">
+                            <th>Usuario</th>
+                            <th>Email</th>
+                            <th>Rol</th>
+                            <th>Acceso rápido</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#staff}}
+                        <tr>
+                            <td style="vertical-align:middle;">
+                                <a href="/perfil/show?id={{id}}" style="font-weight:600; color:#0f2a52; text-decoration:none;">@{{usuario}}</a>
+                                <span style="color:#64748b; font-size:0.82rem;">({{nombre_completo}})</span>
+                            </td>
+                            <td style="vertical-align:middle; color:#475569;">{{email}}</td>
+                            <td style="vertical-align:middle;">
+                                <span style="background:{{badge_rol_color}}; color:#fff; padding:3px 10px; border-radius:999px; font-size:0.78rem; font-weight:600;">
+                                    {{rol_label}}
+                                </span>
+                            </td>
+                            <td style="vertical-align:middle;">
+                                <div class="maestro-acciones">
+                                    {{#es_editor}}
+                                        <form method="post" action="/maestro/cambiarRol">
+                                            <input type="hidden" name="usuario_id" value="{{id}}">
+                                            <input type="hidden" name="rol" value="admin">
+                                            <button type="submit" class="maestro-btn maestro-btn-staff-rol maestro-btn-azul">Subir a Administrador</button>
+                                        </form>
+                                    {{/es_editor}}
+                                    {{#es_admin}}
+                                        <form method="post" action="/maestro/cambiarRol">
+                                            <input type="hidden" name="usuario_id" value="{{id}}">
+                                            <input type="hidden" name="rol" value="editor">
+                                            <button type="submit" class="maestro-btn maestro-btn-staff-rol maestro-btn-celeste">Pasar a Editor</button>
+                                        </form>
+                                    {{/es_admin}}
+                                    <form method="post" action="/maestro/cambiarRol">
+                                        <input type="hidden" name="usuario_id" value="{{id}}">
+                                        <input type="hidden" name="rol" value="usuario">
+                                        <button type="submit" class="maestro-btn maestro-btn-quitar">Quitar rol</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {{/staff}}
+                    </tbody>
+                </table>
+            </div>
+            {{/hay_staff}}
+            {{^hay_staff}}
+                <p style="color:#64748b; font-size:0.9rem;">No hay editores ni administradores asignados actualmente.</p>
+            {{/hay_staff}}
+        </section>
+
+        <!-- Creación de editores o administradores -->
+        <section class="seccion" style="margin-top:24px;">
+            <h4 class="seccion-titulo"><span class="seccion-icono">➕</span> Creación de editores o administradores</h4>
+            <form method="post" action="/maestro/crearStaff" class="maestro-form-grid">
+                <div class="maestro-campo">
+                    <label>Usuario</label>
+                    <input type="text" name="usuario" placeholder="ej. editor_ana" required>
+                </div>
+                <div class="maestro-campo">
+                    <label>Nombre completo</label>
+                    <input type="text" name="nombre_completo" placeholder="Ana Gómez" required>
+                </div>
+                <div class="maestro-campo">
+                    <label>Email</label>
+                    <input type="email" name="email" placeholder="ana@smarttrivia.com" required>
+                </div>
+                <div class="maestro-campo">
+                    <label>Contraseña</label>
+                    <input type="password" name="password" minlength="6" placeholder="Mínimo 6 caracteres" required>
+                </div>
+                <div class="maestro-campo">
+                    <label>Rol</label>
+                    <select name="rol">
+                        <option value="editor">Editor</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                </div>
+                <div class="maestro-campo">
+                    <label>&nbsp;</label>
+                    <button type="submit" class="maestro-form-submit">Crear cuenta</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Historial completo de usuarios -->
+        <section class="seccion" style="margin-top:26px;">
+            <h4 class="seccion-titulo"><span class="seccion-icono">📋</span> Historial de Usuarios, Roles y Baneos</h4>
+            <div style="overflow-x:auto;">
+                <table class="w3-table w3-striped w3-bordered" style="font-size:0.88rem;">
+                    <thead>
+                        <tr style="background:#f8fafc; color:#475569; font-size:0.78rem; text-transform:uppercase;">
+                            <th>Usuario</th>
+                            <th>Registro</th>
+                            <th>Partidas</th>
+                            <th>Rol / Estado</th>
+                            <th>Dar / Quitar rol</th>
+                            <th>Baneo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#usuarios}}
+                        <tr>
+                            <td style="vertical-align:middle;">
+                                <a href="/perfil/show?id={{id}}" style="font-weight:600; color:#0f2a52; text-decoration:none;">@{{usuario}}</a>
+                                <div style="font-size:0.78rem; color:#64748b;">{{email}}</div>
+                            </td>
+                            <td style="vertical-align:middle; color:#64748b; white-space:nowrap;">{{fecha_registro}}</td>
+                            <td style="vertical-align:middle;">
+                                <a href="/perfil/historial?id={{id}}" style="color:#1e56a0; text-decoration:none; font-weight:600;" title="Ver historial de partidas">
+                                    🎮 {{partidas_jugadas}}
+                                </a>
+                            </td>
+                            <td style="vertical-align:middle; white-space:nowrap;">
+                                <span style="background:{{badge_rol_color}}; color:#fff; padding:2px 8px; border-radius:999px; font-size:0.75rem; font-weight:600;">{{rol_label}}</span>
+                                <span style="background:{{badge_estado_color}}; color:#fff; padding:2px 8px; border-radius:999px; font-size:0.75rem; font-weight:600; margin-left:4px;">{{estado}}</span>
+                            </td>
+                            <td style="vertical-align:middle;">
+                                {{#es_maestro}}
+                                    <span style="color:#7c3aed; font-size:0.8rem; font-weight:600;">Protegido</span>
+                                {{/es_maestro}}
+                                {{^es_maestro}}
+                                    <div class="maestro-acciones">
+                                        {{^es_editor}}
+                                        <form method="post" action="/maestro/cambiarRol">
+                                            <input type="hidden" name="usuario_id" value="{{id}}">
+                                            <input type="hidden" name="rol" value="editor">
+                                            <button type="submit" class="maestro-btn maestro-btn-hist-rol maestro-btn-celeste">+ Editor</button>
+                                        </form>
+                                        {{/es_editor}}
+                                        {{^es_admin}}
+                                        <form method="post" action="/maestro/cambiarRol">
+                                            <input type="hidden" name="usuario_id" value="{{id}}">
+                                            <input type="hidden" name="rol" value="admin">
+                                            <button type="submit" class="maestro-btn maestro-btn-hist-rol maestro-btn-indigo">+ Administrador</button>
+                                        </form>
+                                        {{/es_admin}}
+                                        {{#tiene_privilegio}}
+                                        <form method="post" action="/maestro/cambiarRol">
+                                            <input type="hidden" name="usuario_id" value="{{id}}">
+                                            <input type="hidden" name="rol" value="usuario">
+                                            <button type="submit" class="maestro-btn maestro-btn-hist-rol maestro-btn-quitar">Quitar rol</button>
+                                        </form>
+                                        {{/tiene_privilegio}}
+                                    </div>
+                                {{/es_maestro}}
+                            </td>
+                            <td style="vertical-align:middle;">
+                                {{^es_maestro}}
+                                    {{#esta_baneado}}
+                                        <form method="post" action="/maestro/banear" style="margin:0;">
+                                            <input type="hidden" name="usuario_id" value="{{id}}">
+                                            <input type="hidden" name="accion" value="desbanear">
+                                            <button type="submit" class="maestro-btn maestro-btn-baneo maestro-btn-verde">Desbanear</button>
+                                        </form>
+                                    {{/esta_baneado}}
+                                    {{^esta_baneado}}
+                                        <form method="post" action="/maestro/banear" style="margin:0;" onsubmit="return confirm('¿Seguro que querés banear a @{{usuario}}?');">
+                                            <input type="hidden" name="usuario_id" value="{{id}}">
+                                            <input type="hidden" name="accion" value="banear">
+                                            <button type="submit" class="maestro-btn maestro-btn-baneo maestro-btn-rojo">Banear</button>
+                                        </form>
+                                    {{/esta_baneado}}
+                                {{/es_maestro}}
+                            </td>
+                        </tr>
+                        {{/usuarios}}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </div>
+</div>

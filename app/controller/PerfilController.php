@@ -57,9 +57,15 @@ class PerfilController
             }
         }
 
-        // Estadísticas de juego
+        $esPropio = ($usuarioLogueadoId !== null && (int)$usuarioLogueadoId === (int)$usuario['id']);
+        $rolLogueado = $_SESSION['rol'] ?? '';
+        $esPrivilegiado = in_array($rolLogueado, ['editor', 'admin', 'maestro'], true);
+        // El historial es privado: solo lo ve el propio usuario o roles privilegiados (editor/admin/maestro)
+        $puedeVerHistorial = $esPropio || $esPrivilegiado;
+
+        // Estadísticas de juego (en el perfil solo mostramos las últimas 3 partidas)
         $stats = $this->model->obtenerEstadisticas($usuario['id']);
-        $historial = $this->model->obtenerHistorialPartidas($usuario['id'], 10);
+        $historial = $puedeVerHistorial ? $this->model->obtenerHistorialPartidas($usuario['id'], 3) : [];
 
         // URL pública para el código QR
         $protocolo = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
@@ -67,7 +73,7 @@ class PerfilController
         $urlPerfil = "{$protocolo}://{$host}/perfil/show?id=" . $usuario['id'];
         $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=" . urlencode($urlPerfil);
 
-        $esPropio = ($usuarioLogueadoId !== null && (int)$usuarioLogueadoId === (int)$usuario['id']);
+        $urlHistorialCompleto = $esPropio ? '/perfil/historial' : '/perfil/historial?id=' . (int)$usuario['id'];
 
         $data = [
             "id" => $usuario['id'],
@@ -88,17 +94,63 @@ class PerfilController
             "racha_dias" => $stats['racha_dias'],
             "multiplicador" => $stats['multiplicador'],
             "tiene_racha_dias" => $stats['racha_dias'] > 0,
+            "puede_ver_historial" => $puedeVerHistorial,
+            "url_historial_completo" => $urlHistorialCompleto,
             "historial_partidas" => $historial,
             "tiene_historial" => count($historial) > 0,
             "qr_url" => $qrUrl,
             "url_perfil" => $urlPerfil,
             "es_propio" => $esPropio,
+            "mostrar_panel_editor" => $esPropio && in_array($rolLogueado, ['editor', 'admin', 'maestro'], true),
+            "mostrar_panel_admin" => $esPropio && in_array($rolLogueado, ['admin', 'maestro'], true),
+            "mostrar_panel_maestro" => $esPropio && $rolLogueado === 'maestro',
             "fecha_registro" => date('d/m/Y', strtotime($usuario['fecha_registro'])),
             "aviso" => $_SESSION['perfil_ok'] ?? null, // Mensaje de "cambios guardados"
         ];
         unset($_SESSION['perfil_ok']);
 
         $this->render->renderiza("perfil", $data);
+    }
+
+    // Historial completo de partidas (privado: solo propio usuario, o editor/admin/maestro)
+    public function historial()
+    {
+        $usuarioLogueadoId = (int)($_SESSION['usuario_id'] ?? 0);
+        $rolLogueado = $_SESSION['rol'] ?? '';
+        $esPrivilegiado = in_array($rolLogueado, ['editor', 'admin', 'maestro'], true);
+
+        $idParam = Request::get('id');
+        $idObjetivo = $idParam !== null ? (int)$idParam : $usuarioLogueadoId;
+
+        // Un usuario común jamás puede ver el historial de otro usuario
+        if ($idObjetivo !== $usuarioLogueadoId && !$esPrivilegiado) {
+            Redirect::to('/perfil/historial');
+            return;
+        }
+
+        $usuario = $this->model->obtenerPorId($idObjetivo);
+        if (!$usuario) {
+            Redirect::to('/home/show');
+            return;
+        }
+
+        $stats = $this->model->obtenerEstadisticas($usuario['id']);
+        $historialCompleto = $this->model->obtenerHistorialPartidas($usuario['id'], null);
+        $esPropio = ($idObjetivo === $usuarioLogueadoId);
+
+        $this->render->renderiza("historial", [
+            "id" => $usuario['id'],
+            "usuario" => $usuario['usuario'],
+            "nombre_completo" => $usuario['nombre_completo'],
+            "es_propio" => $esPropio,
+            "url_volver_perfil" => $esPropio ? '/perfil/show' : '/perfil/show?id=' . (int)$usuario['id'],
+            "puntaje_acumulado" => $stats['puntaje_acumulado_formato'],
+            "partidas_jugadas" => $stats['partidas_jugadas'],
+            "preguntas_correctas" => $stats['preguntas_correctas'],
+            "mayor_racha" => $stats['mayor_racha'],
+            "historial_partidas" => $historialCompleto,
+            "tiene_historial" => count($historialCompleto) > 0,
+        ]);
     }
 
     // Muestra el formulario para editar el perfil. Solo se puede editar el propio
