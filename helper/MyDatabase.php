@@ -39,5 +39,20 @@ class MyDatabase
     {
         return $this->conexion->lastInsertId();
     }
+    // Transacciones: permiten que varias escrituras se guarden todas juntas o ninguna
+    public function beginTransaction()
+    {
+        $this->conexion->beginTransaction();
+    }
+    public function commit()
+    {
+        $this->conexion->commit();
+    }
+    public function rollBack()
+    {
+        if ($this->conexion->inTransaction()) {
+            $this->conexion->rollBack();
+        }
+    }
 }
 

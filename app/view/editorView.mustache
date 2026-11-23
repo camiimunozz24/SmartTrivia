@@ -1,40 +1,93 @@
 <link rel="stylesheet" href="/public/css/login.css">
 <link rel="stylesheet" href="/public/css/perfil.css">
+<link rel="stylesheet" href="/public/css/editor.css">
 
-<div class="w3-content perfil" style="max-width:760px">
+<div class="w3-content perfil" style="max-width:860px">
     <div class="card-trivia-perfil w3-margin-top">
 
-        <!-- Cabecera del Panel Editor -->
         <div class="perfil-cabecera">
             <div class="perfil-avatar-placeholder" style="background:#e0f2fe; color:#0369a1;">✏️</div>
-
             <div class="perfil-titulos">
                 <h2>Panel de Editor</h2>
-                <p class="perfil-subtitulo">SmartTrivia · Espacio reservado para el rol Editor</p>
-                <span class="perfil-badge" style="background-color: #0284c7; color: white;">
-                    Rol: {{rol}}
-                </span>
+                <p class="perfil-subtitulo">Revisá las preguntas sugeridas y los reportes de los usuarios</p>
+                <span class="perfil-badge" style="background-color: #0284c7; color: white;">Rol: {{rol}}</span>
             </div>
         </div>
 
-        <!-- Espacio reservado para futuras herramientas de edición -->
-        <section class="seccion" style="margin-top: 20px;">
-            <div style="background:#f0f9ff; border:1px dashed #38bdf8; border-radius:10px; padding:24px; text-align:center;">
-                <div style="font-size:36px; margin-bottom:8px;">🛠️</div>
-                <h4 style="margin:0 0 8px; color:#0c4a6e; font-weight:700;">Módulo de Editor listo para desarrollar</h4>
-                <p style="margin:0; color:#475569; font-size:0.95rem;">
-                    Esta sección está configurada con permisos exclusivos para los roles <strong>editor</strong> y <strong>admin</strong>.
-                    Acá se podrán agregar las herramientas de gestión de preguntas, categorías y reportes.
-                </p>
-            </div>
-        </section>
+        {{#aviso}}
+            <div class="ed-aviso{{#aviso_ok}} ed-aviso-ok{{/aviso_ok}}{{#aviso_error}} ed-aviso-error{{/aviso_error}}">{{aviso}}</div>
+        {{/aviso}}
+
+        <nav class="ed-tabs">
+            <a href="/editor/show?seccion=sugerencias" class="ed-tab{{#seccion_sugerencias}} activa{{/seccion_sugerencias}}">
+                💡 Sugerencias <span class="ed-contador">{{cant_sugerencias}}</span>
+            </a>
+            <a href="/editor/show?seccion=reportes" class="ed-tab{{#seccion_reportes}} activa{{/seccion_reportes}}">
+                🚩 Reportes <span class="ed-contador">{{cant_reportes}}</span>
+            </a>
+        </nav>
+
+        {{#seccion_sugerencias}}
+            {{^hay_sugerencias}}
+                <p class="ed-vacio">No hay sugerencias pendientes. ¡Todo al día! 🎉</p>
+            {{/hay_sugerencias}}
+
+            {{#sugerencias}}
+                <details class="ed-tarjeta" style="--color-categoria: {{color}};">
+                    <summary>
+                        <span class="ed-categoria">{{categoria}}</span>
+                        <span class="ed-enunciado">{{enunciado}}</span>
+                        <span class="ed-meta">por {{autor}} · {{fecha}}</span>
+                    </summary>
+
+                    <form action="/editor/editar" method="post" class="ed-form">
+                        <input type="hidden" name="seccion" value="sugerencias">
+                        {{> preguntaCampos}}
+
+                        <div class="ed-botones">
+                            <button type="submit" class="w3-button w3-blue w3-round">💾 Guardar cambios</button>
+                            <button type="submit" formaction="/editor/aprobar" class="w3-button w3-green w3-round">✔ Aprobar</button>
+                            <button type="submit" formaction="/editor/rechazar" formnovalidate class="w3-button w3-red w3-round">✖ Rechazar</button>
+                        </div>
+                    </form>
+                </details>
+            {{/sugerencias}}
+        {{/seccion_sugerencias}}
+
+        {{#seccion_reportes}}
+            {{^hay_reportes}}
+                <p class="ed-vacio">No hay preguntas reportadas pendientes. 👍</p>
+            {{/hay_reportes}}
+
+            {{#reportes}}
+                <details class="ed-tarjeta" style="--color-categoria: {{color}};">
+                    <summary>
+                        <span class="ed-categoria">{{categoria}}</span>
+                        <span class="ed-enunciado">{{enunciado}}</span>
+                        <span class="ed-meta">🚩 {{texto_reportes}} · último: {{ultimo_reporte}}</span>
+                    </summary>
+
+                    <form action="/editor/editar" method="post" class="ed-form">
+                        <input type="hidden" name="seccion" value="reportes">
+                        {{> preguntaCampos}}
+
+                        <div class="ed-botones">
+                            <button type="submit" class="w3-button w3-blue w3-round">💾 Guardar cambios</button>
+                            <button type="submit" formaction="/editor/mantener" formnovalidate class="w3-button w3-green w3-round">✔ Mantener activa</button>
+                            <button type="submit" formaction="/editor/baja" formnovalidate class="w3-button w3-red w3-round"
+                                    onclick="return confirm('¿Dar de baja esta pregunta? Dejará de aparecer en el juego.');">⛔ Dar de baja</button>
+                        </div>
+                    </form>
+                </details>
+            {{/reportes}}
+        {{/seccion_reportes}}
 
         {{#es_admin}}
-        <div style="margin-top:16px; text-align:right;">
-            <a href="/admin/show" class="w3-button w3-blue w3-round" style="text-decoration:none; font-weight:600;">
-                ← Volver al Panel de Administración
-            </a>
-        </div>
+            <div style="margin-top:16px; text-align:right;">
+                <a href="/admin/show" class="w3-button w3-blue w3-round" style="text-decoration:none; font-weight:600;">
+                    ← Volver al Panel de Administración
+                </a>
+            </div>
         {{/es_admin}}
 
     </div>

@@ -19,6 +19,11 @@ return [
 
     'partida' => 'usuario',
     'ranking' => 'usuario',
+
+    // Cualquier usuario con sesión puede sugerir una pregunta y reportar la que le tocó al perder
+    'sugerencia' => 'usuario',
+    'reporte'    => 'usuario',
+
     // Rutas exclusivas para editores (también accesibles por admin)
     'editor'    => 'editor',
 

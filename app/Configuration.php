@@ -11,14 +11,20 @@ use app\controller\PerfilController;
 use app\controller\RankingController;
 use app\controller\RegistroController;
 use app\controller\PartidaController;
+use app\controller\ReporteController;
+use app\controller\SugerenciaController;
 use app\model\AdminModel;
 use app\model\MaestroModel;
 use app\model\PartidaModel;
 use app\model\LoginModel;
 use app\model\PerfilModel;
+use app\model\PreguntaModel;
 use app\model\RankingModel;
 use app\model\RegistroModel;
+use app\model\ReporteModel;
+use app\validator\LongitudesPregunta;
 use app\validator\CamposObligatorios;
+use app\validator\CategoriaExistente;
 use app\validator\EmailDisponible;
 use app\validator\EmailValido;
 use app\validator\FechaNacimientoValida;
@@ -27,6 +33,7 @@ use app\validator\GeneroValido;
 use app\validator\NombreCompletoValido;
 use app\validator\PasswordMinima;
 use app\validator\PasswordsCoinciden;
+use app\validator\RespuestasDistintas;
 use app\validator\UbicacionValida;
 use app\validator\UsuarioDisponible;
 use app\validator\UsuarioValido;
@@ -73,15 +80,42 @@ class Configuration
         return new AdminController($this->getRender(), new AdminModel($this->getDatabase()));
     }
 
+    // Editor: render(vistas), modelo de preguntas, modelo de reportes, validador de la pregunta editada.
+    // Los dos modelos comparten la misma conexión a la bd
     public function getEditorController()
     {
-        return new EditorController($this->getRender());
+        $database = $this->getDatabase();
+        $preguntaModel = new PreguntaModel($database);
+
+        return new EditorController(
+            $this->getRender(),
+            $preguntaModel,
+            new ReporteModel($database),
+            $this->getPreguntaValidador($preguntaModel)
+        );
     }
 
     public function getMaestroController()
     {
         return new MaestroController($this->getRender(), new MaestroModel($this->getDatabase()));
     }
+
+    // Sugerir pregunta: render(vistas), modelo de preguntas, validador
+    public function getSugerenciaController()
+    {
+        $model = new PreguntaModel($this->getDatabase());
+
+        return new SugerenciaController($this->getRender(), $model, $this->getPreguntaValidador($model));
+    }
+
+    // Reportar pregunta: modelo de reportes + modelo de partidas (para saber qué pregunta le tocó al usuario)
+    public function getReporteController()
+    {
+        $database = $this->getDatabase();
+
+        return new ReporteController(new ReporteModel($database), new PartidaModel($database));
+    }
+
 
     public function getRankingController()
     {
@@ -108,6 +142,17 @@ class Configuration
             new PasswordsCoinciden(),
             new UsuarioDisponible($model),
             new EmailDisponible($model),
+        ]);
+    }
+
+    // Arma el validador de una pregunta (sugerida o editada). Mismas reglas para los dos formularios
+    private function getPreguntaValidador($model)
+    {
+        return new Validador([
+            new CamposObligatorios(),
+            new LongitudesPregunta(),
+            new RespuestasDistintas(),
+            new CategoriaExistente($model),
         ]);
     }
 

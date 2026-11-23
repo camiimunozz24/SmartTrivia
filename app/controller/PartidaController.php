@@ -242,7 +242,15 @@ class PartidaController
 
         $rachaDiaria = $this->model->obtenerRachaDiaria($usuarioId);
 
+        // Mensaje de "Reportar pregunta" (lo deja ReporteController); se muestra una sola vez
+        $avisoReporte = $_SESSION['reporte_aviso'] ?? null;
+        unset($_SESSION['reporte_aviso']);
+
         $data = [
+            "reporte_aviso" => $avisoReporte['texto'] ?? null,
+            "reporte_ok" => ($avisoReporte['tipo'] ?? '') === 'ok',
+            "reporte_info" => ($avisoReporte['tipo'] ?? '') === 'info',
+            "reporte_error" => ($avisoReporte['tipo'] ?? '') === 'error',
             "icono" => $icono,
             "titulo" => $titulo,
             "motivo_error" => $motivo === 'error',
@@ -263,6 +271,7 @@ class PartidaController
             $data["pregunta"] = $pregunta['enunciado'];
             $data["correcta"] = $this->model->obtenerTextoCorrecta($partida['pregunta_id']);
             $data["mostrar_correcta"] = true;
+            $data["puede_reportar"] = ($avisoReporte['tipo'] ?? '') !== 'ok'; // Ya reporto recien: se oculta el enlace
         }
 
         $this->noGuardarEnCache();

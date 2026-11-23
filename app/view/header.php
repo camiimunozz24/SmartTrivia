@@ -41,6 +41,7 @@ $enMenuPerfil = strpos($rutaActual, '/perfil') === 0
             <a href="/home/show" class="nav-link<?= $activo('/home') ?>">Inicio</a>
             <a href="/ranking/show" class="nav-link<?= $activo('/ranking') ?>">Rankings</a>
             <a href="/partida/iniciar" class="nav-link<?= $activo('/partida') ?>">Jugar</a>
+            <a href="/sugerencia/show" class="nav-link<?= $activo('/sugerencia') ?>">Sugerir pregunta</a>
             <span class="nav-separador"></span>
 
             <div class="nav-perfil-wrap" id="nav-perfil-wrap">
