@@ -20,12 +20,13 @@ class Mailer
         try {
             // Servidor SMTP (Gmail)
             $mail->isSMTP();
-            $mail->Host       = $config['mail_host'];
+            $mail->Host       = trim($config['mail_host']);
             $mail->SMTPAuth   = true;
-            $mail->Username   = $config['mail_usuario'];
-            $mail->Password   = $config['mail_password'];
+            $mail->Username   = trim($config['mail_usuario']);
+            $mail->Password   = preg_replace('/\s+/', '', (string)($config['mail_password'] ?? ''));
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port       = (int) $config['mail_port'];
+            $mail->Timeout    = 15;
             $mail->CharSet    = 'UTF-8';
 
             // Remitente y destinatario
@@ -49,8 +50,12 @@ class Mailer
             $mail->send();
             return true;
         } catch (Exception $e) {
-            // Si falla, queda registrado en el log de errores del servidor
-            error_log("Error enviando mail: " . $mail->ErrorInfo);
+            // Si falla, queda registrado en el log de errores del servidor y en log/YYYY-MM-DD.log
+            $detalle = "Error enviando mail a {$destinatario}: " . $mail->ErrorInfo;
+            error_log($detalle);
+            if (class_exists('Log')) {
+                \Log::error($detalle);
+            }
             return false;
         }
     }

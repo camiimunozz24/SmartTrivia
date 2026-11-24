@@ -96,10 +96,15 @@ class RegistroController
             Redirect::to('/registro');
         }
 
+        $transcurrido = time() - ($_SESSION['ultimo_envio'] ?? 0);
+        $espera = max(0, self::SEGUNDOS_ENTRE_ENVIOS - $transcurrido);
+
         $data = [
             "email" => $_SESSION['email_pendiente'],
             "error" => $_SESSION['verificacion_error'] ?? null,
             "aviso" => $_SESSION['verificacion_aviso'] ?? null,
+            "espera_segundos" => $espera,
+            "en_espera" => $espera > 0,
         ];
         unset($_SESSION['verificacion_error'], $_SESSION['verificacion_aviso']);
 
