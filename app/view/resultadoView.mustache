@@ -39,6 +39,15 @@
             </div>
         </div>
     </div>
+    {{#reporte_aviso}}
+        <div class="reporte-aviso{{#reporte_ok}} reporte-aviso-ok{{/reporte_ok}}{{#reporte_error}} reporte-aviso-error{{/reporte_error}}">{{reporte_aviso}}</div>
+    {{/reporte_aviso}}
+
+    {{#puede_reportar}}
+        <form action="/reporte/reportar" method="post" class="reporte-form">
+            <button type="submit" class="reporte-enlace">🚩 Reportar pregunta</button>
+        </form>
+    {{/puede_reportar}}
 </div>
 <script>
     (function () {

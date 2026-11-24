@@ -1,0 +1,37 @@
+/* ESTILOS DEL PANEL DEL EDITOR: pestañas y tarjetas de preguntas */
+
+.ed-tabs { display: flex; gap: 8px; border-bottom: 2px solid #e2e8f0; margin-bottom: 18px; }
+.ed-tab {
+    padding: 10px 18px; border-radius: 10px 10px 0 0; font-weight: 700; color: #64748b; text-decoration: none;
+    border: 2px solid transparent; border-bottom: none; margin-bottom: -2px;
+}
+.ed-tab:hover { background: #f1f5f9; color: #0f172a; }
+.ed-tab.activa { background: #fff; color: #0369a1; border-color: #e2e8f0; }
+.ed-contador { display: inline-block; min-width: 22px; padding: 1px 8px; margin-left: 4px; border-radius: 999px; background: #e0f2fe; color: #0369a1; font-size: .85rem; text-align: center; }
+
+.ed-aviso { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; background: #eff6ff; border-left: 4px solid #1e56a0; color: #1e3a8a; }
+.ed-aviso-ok { background: #f0fdf4; border-left-color: #16a34a; color: #166534; }
+.ed-aviso-error { background: #fef2f2; border-left-color: #dc2626; color: #991b1b; }
+.ed-vacio { text-align: center; color: #64748b; padding: 28px 0; }
+
+.ed-tarjeta {
+    background: #fff; border: 1px solid #e2e8f0; border-left: 6px solid var(--color-categoria, #475569);
+    border-radius: 10px; margin-bottom: 12px; box-shadow: 0 2px 6px rgb(15 23 42 / .06);
+}
+.ed-tarjeta summary { list-style: none; cursor: pointer; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
+.ed-tarjeta summary::-webkit-details-marker { display: none; }
+.ed-tarjeta[open] summary { border-bottom: 1px solid #e2e8f0; background: #f8fafc; }
+.ed-categoria { align-self: flex-start; background: var(--color-categoria, #475569); color: #fff; font-size: .75rem; font-weight: 700; padding: 2px 10px; border-radius: 999px; }
+.ed-enunciado { font-weight: 700; color: #0f172a; }
+.ed-meta { font-size: .85rem; color: #64748b; }
+
+.ed-form { padding: 16px; }
+.ed-campo { margin-bottom: 14px; }
+.ed-campo label { display: block; font-size: .9rem; font-weight: 600; color: #334155; }
+.ed-fila { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+.ed-botones { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+
+@media (max-width: 600px) {
+    .ed-fila { grid-template-columns: 1fr; }
+    .ed-tab { padding: 8px 10px; font-size: .9rem; }
+}

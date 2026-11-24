@@ -146,3 +146,14 @@
 .resultado-icono { animation: aparecer .6s ease-out; }
 @keyframes aparecer { from { transform: scale(0) rotate(-20deg); } to { transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .partida-card.acierto, .resultado-icono { animation: none; } }
+
+/* ----- Reportar pregunta (debajo de la tarjeta de derrota) ----- */
+.reporte-form { text-align: center; margin: 14px 0 0; }
+.reporte-enlace {
+    background: none; border: none; padding: 4px 8px; cursor: pointer; font-family: inherit; font-size: .95rem;
+    color: #64748b; text-decoration: underline;
+}
+.reporte-enlace:hover { color: #dc2626; }
+.reporte-aviso { margin: 14px 0 0; padding: 12px 16px; border-radius: 8px; text-align: center; background: #eff6ff; border-left: 4px solid #1e56a0; color: #1e3a8a; }
+.reporte-aviso-ok { background: #f0fdf4; border-left-color: #16a34a; color: #166534; }
+.reporte-aviso-error { background: #fef2f2; border-left-color: #dc2626; color: #991b1b; }

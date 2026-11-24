@@ -1,0 +1,60 @@
+<link rel="stylesheet" href="/public/css/login.css">
+<link rel="stylesheet" href="/public/css/registro.css">
+
+<div class="w3-content registro" style="max-width:640px">
+    <div class="card-trivia-registro w3-margin-top">
+        <h2 class="w3-center">Sugerir una pregunta</h2>
+        <p class="w3-center" style="color:#607d8b">Tu pregunta será revisada por un editor antes de entrar al juego.</p>
+
+        {{#error}}
+            <div class="w3-panel w3-pale-red w3-leftbar w3-border-red">
+                <p>{{error}}</p>
+            </div>
+        {{/error}}
+        {{#ok}}
+            <div class="w3-panel w3-pale-green w3-leftbar w3-border-green">
+                <p>{{ok}}</p>
+            </div>
+        {{/ok}}
+
+        <form action="/sugerencia/enviar" method="post">
+            <section class="seccion">
+                <div class="campo">
+                    <label for="pregunta">Pregunta</label>
+                    <input class="w3-input w3-border" type="text" id="pregunta" name="pregunta" maxlength="255" value="{{pregunta}}" required autofocus>
+                </div>
+
+                <div class="campo">
+                    <label for="categoria_id">Categoría</label>
+                    <select class="w3-select w3-border" id="categoria_id" name="categoria_id" required>
+                        <option value="" disabled {{#sin_categoria_elegida}}selected{{/sin_categoria_elegida}} hidden>Elegí una categoría</option>
+                        {{#categorias}}
+                            <option value="{{id}}" {{#seleccionada}}selected{{/seleccionada}}>{{nombre}}</option>
+                        {{/categorias}}
+                    </select>
+                </div>
+            </section>
+
+            <section class="seccion">
+                <div class="campo">
+                    <label for="correcta">Respuesta correcta</label>
+                    <input class="w3-input w3-border" type="text" id="correcta" name="correcta" maxlength="150" value="{{correcta}}" required>
+                </div>
+                <div class="campo">
+                    <label for="incorrecta1">Respuesta incorrecta 1</label>
+                    <input class="w3-input w3-border" type="text" id="incorrecta1" name="incorrecta1" maxlength="150" value="{{incorrecta1}}" required>
+                </div>
+                <div class="campo">
+                    <label for="incorrecta2">Respuesta incorrecta 2</label>
+                    <input class="w3-input w3-border" type="text" id="incorrecta2" name="incorrecta2" maxlength="150" value="{{incorrecta2}}" required>
+                </div>
+                <div class="campo">
+                    <label for="incorrecta3">Respuesta incorrecta 3</label>
+                    <input class="w3-input w3-border" type="text" id="incorrecta3" name="incorrecta3" maxlength="150" value="{{incorrecta3}}" required>
+                </div>
+            </section>
+
+            <button class="w3-button w3-green w3-block" type="submit">Enviar sugerencia</button>
+        </form>
+    </div>
+</div>
