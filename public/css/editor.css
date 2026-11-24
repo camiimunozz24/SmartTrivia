@@ -1,9 +1,42 @@
-/* ESTILOS DEL PANEL DEL EDITOR: pestañas y tarjetas de preguntas */
+/* ESTILOS DEL PANEL DEL EDITOR: menú rápido, pestañas, tarjetas de preguntas y gestión de categorías */
 
-.ed-tabs { display: flex; gap: 8px; border-bottom: 2px solid #e2e8f0; margin-bottom: 18px; }
+.ed-menu-rapido {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 18px 0 16px;
+}
+.ed-acceso {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 14px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: .88rem;
+    text-decoration: none;
+    text-align: center;
+    border: 1px solid transparent;
+    transition: transform .12s, box-shadow .12s, filter .12s;
+}
+.ed-acceso:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgb(15 23 42 / .1); }
+.ed-acceso-crear { background: #16a34a; color: #fff; }
+.ed-acceso-crear.activo { background: #15803d; box-shadow: 0 0 0 3px rgb(22 163 74 / .25); }
+.ed-acceso-sug { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+.ed-acceso-sug.activo { background: #dbeafe; border-color: #3b82f6; }
+.ed-acceso-rep { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+.ed-acceso-rep.activo { background: #fee2e2; border-color: #ef4444; }
+.ed-acceso-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px;
+    background: rgb(15 23 42 / .1); font-size: .78rem; font-weight: 800;
+}
+
+.ed-tabs { display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 2px solid #e2e8f0; margin-bottom: 18px; }
 .ed-tab {
-    padding: 10px 18px; border-radius: 10px 10px 0 0; font-weight: 700; color: #64748b; text-decoration: none;
-    border: 2px solid transparent; border-bottom: none; margin-bottom: -2px;
+    padding: 10px 16px; border-radius: 10px 10px 0 0; font-weight: 700; color: #64748b; text-decoration: none;
+    border: 2px solid transparent; border-bottom: none; margin-bottom: -2px; white-space: nowrap;
 }
 .ed-tab:hover { background: #f1f5f9; color: #0f172a; }
 .ed-tab.activa { background: #fff; color: #0369a1; border-color: #e2e8f0; }
@@ -31,7 +64,59 @@
 .ed-fila { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
 .ed-botones { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
 
+/* Filtros de categoría en la pestaña Preguntas */
+.ed-filtros-cat { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.ed-pill-cat {
+    display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
+    border-radius: 999px; border: 1px solid #cbd5e1; background: #f8fafc;
+    color: #334155; font-size: .86rem; font-weight: 600; text-decoration: none; transition: all .15s;
+}
+.ed-pill-cat:hover { background: #e2e8f0; color: #0f172a; }
+.ed-pill-cat.activa { background: var(--color-categoria, #0369a1); border-color: var(--color-categoria, #0369a1); color: #fff; }
+.ed-pill-cat.activa .ed-dot { background: #fff !important; }
+.ed-pill-cat.activa .ed-pill-num { background: rgb(255 255 255 / .25); color: #fff; }
+.ed-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.ed-pill-num { background: #e2e8f0; color: #334155; font-size: .75rem; padding: 1px 7px; border-radius: 999px; }
+
+/* Gestión de categorías */
+.ed-subtitulo { margin: 0 0 12px; font-size: 1rem; font-weight: 700; color: #0f172a; }
+.ed-cat-nueva { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; }
+.ed-cat-form-inline { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+.ed-cat-campo-nombre { flex: 1; min-width: 220px; }
+.ed-cat-campo-color { width: 76px; }
+.ed-cat-form-inline label { display: block; font-size: .82rem; font-weight: 600; color: #475569; margin-bottom: 4px; }
+.ed-cat-form-inline input[type="text"] {
+    width: 100%; height: 38px; padding: 0 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: .9rem;
+}
+.ed-cat-form-inline input[type="color"] {
+    width: 100%; height: 38px; padding: 2px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; cursor: pointer; box-sizing: border-box;
+}
+.ed-cat-btn-altura { height: 38px; font-weight: 600; display: inline-flex; align-items: center; }
+
+.ed-cat-card {
+    background: #fff; border: 1px solid #e2e8f0; border-left: 6px solid var(--color-categoria, #475569);
+    border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; box-shadow: 0 2px 5px rgb(15 23 42 / .05);
+}
+.ed-cat-editar-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ed-color-picker { width: 38px; height: 36px; padding: 2px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; cursor: pointer; }
+.ed-cat-input {
+    flex: 1; min-width: 180px; height: 36px; padding: 0 10px; border: 1px solid #cbd5e1;
+    border-radius: 6px; font-weight: 600; color: #0f172a; box-sizing: border-box;
+}
+.ed-cat-conteo { font-size: .82rem; color: #64748b; white-space: nowrap; padding: 0 4px; }
+.ed-cat-btn { height: 36px; display: inline-flex; align-items: center; font-weight: 600; }
+
+.ed-cat-borrar-wrap { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #e2e8f0; }
+.ed-cat-borrar-toggle { cursor: pointer; font-size: .82rem; font-weight: 600; color: #dc2626; list-style: none; display: inline-block; }
+.ed-cat-borrar-toggle::-webkit-details-marker { display: none; }
+.ed-cat-borrar-toggle:hover { text-decoration: underline; }
+.ed-cat-borrar-form { margin-top: 10px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 14px; }
+.ed-cat-alerta { font-size: .86rem; color: #991b1b; line-height: 1.45; }
+.ed-cat-check { display: flex; align-items: flex-start; gap: 8px; margin-top: 10px; font-size: .85rem; color: #7f1d1d; cursor: pointer; }
+.ed-cat-check input { margin-top: 3px; }
+
 @media (max-width: 600px) {
+    .ed-menu-rapido { grid-template-columns: 1fr; }
     .ed-fila { grid-template-columns: 1fr; }
-    .ed-tab { padding: 8px 10px; font-size: .9rem; }
+    .ed-tab { padding: 8px 10px; font-size: .88rem; }
 }

@@ -23,18 +23,113 @@ class PreguntaModel
         return $this->database->queryAll("SELECT id, nombre, color FROM categorias ORDER BY id");
     }
 
+    // Categorías con cantidad de preguntas activas y totales (para el panel del editor)
+    public function obtenerCategoriasConConteo()
+    {
+        return $this->database->queryAll(
+            "SELECT c.id, c.nombre, c.color,
+                    SUM(CASE WHEN p.estado = 'activa' THEN 1 ELSE 0 END) AS cant_activas,
+                    COUNT(p.id) AS cant_total
+             FROM categorias c
+             LEFT JOIN preguntas p ON p.categoria_id = c.id
+             GROUP BY c.id, c.nombre, c.color
+             ORDER BY c.id ASC"
+        );
+    }
+
     public function existeCategoria($categoriaId){
         return $this->database->queryOne("SELECT id FROM categorias WHERE id = ?", [(int)$categoriaId]) !== null;
+    }
+
+    public function existeNombreCategoria($nombre, $excluirId = 0)
+    {
+        $fila = $this->database->queryOne(
+            "SELECT id FROM categorias WHERE LOWER(nombre) = LOWER(?) AND id <> ? LIMIT 1",
+            [$nombre, (int)$excluirId]
+        );
+        return $fila !== null;
+    }
+
+    public function crearCategoria($nombre, $color)
+    {
+        if ($this->existeNombreCategoria($nombre)) {
+            return false;
+        }
+        $this->database->execute(
+            "INSERT INTO categorias (nombre, color) VALUES (?, ?)",
+            [$nombre, $color]
+        );
+        return (int)$this->database->lastInsertId();
+    }
+
+    public function editarCategoria($id, $nombre, $color)
+    {
+        if (!$this->existeCategoria($id) || $this->existeNombreCategoria($nombre, $id)) {
+            return false;
+        }
+        $this->database->execute(
+            "UPDATE categorias SET nombre = ?, color = ? WHERE id = ?",
+            [$nombre, $color, (int)$id]
+        );
+        return true;
+    }
+
+    // Elimina una categoría creando obligatoriamente una nueva para reasignar todas sus preguntas (y partidas)
+    public function eliminarCategoriaYReasignar($categoriaId, $nuevoNombre, $nuevoColor)
+    {
+        $categoriaId = (int)$categoriaId;
+        if (!$this->existeCategoria($categoriaId) || $this->existeNombreCategoria($nuevoNombre)) {
+            return false;
+        }
+
+        return $this->enTransaccion(function () use ($categoriaId, $nuevoNombre, $nuevoColor) {
+            $this->database->execute(
+                "INSERT INTO categorias (nombre, color) VALUES (?, ?)",
+                [$nuevoNombre, $nuevoColor]
+            );
+            $nuevaCategoriaId = (int)$this->database->lastInsertId();
+
+            // Reasignar todas las preguntas (activas, sugeridas, baja, etc.) a la nueva categoría
+            $this->database->execute(
+                "UPDATE preguntas SET categoria_id = ? WHERE categoria_id = ?",
+                [$nuevaCategoriaId, $categoriaId]
+            );
+
+            // Reasignar referencia en partidas históricas para mantener integridad visual
+            try {
+                $this->database->execute(
+                    "UPDATE partidas SET categoria_id = ? WHERE categoria_id = ?",
+                    [$nuevaCategoriaId, $categoriaId]
+                );
+            } catch (\Throwable $e) {}
+
+            // Eliminar la categoría anterior una vez migradas todas sus referencias
+            $eliminadas = $this->database->execute(
+                "DELETE FROM categorias WHERE id = ?",
+                [$categoriaId]
+            );
+
+            return $eliminadas === 1 ? $nuevaCategoriaId : false;
+        });
     }
 
     //SUGERENCIAS (cualquier usuario)
 
     //guarda la pregunta con sus 4 respuestas en estado 'sugerida'. O se guarda todo no se guarda nada
     public function crearSugerida($usuarioId, $datos){
-       return $this->enTransaccion(function () use ($usuarioId, $datos){
+        return $this->crearConEstado($usuarioId, $datos, self::SUGERIDA);
+    }
+
+    // Crea una pregunta directamente como 'activa' (acción directa del editor)
+    public function crearActiva($usuarioId, $datos){
+        return $this->crearConEstado($usuarioId, $datos, self::ACTIVA);
+    }
+
+    private function crearConEstado($usuarioId, $datos, $estado){
+       return $this->enTransaccion(function () use ($usuarioId, $datos, $estado){
             $this->database->execute(
                 "INSERT INTO preguntas (categoria_id, enunciado, estado, creada_por) VALUES (?, ?, ?, ?)",
-                [(int)$datos['categoria_id'], $datos['pregunta'], self::SUGERIDA, (int)$usuarioId]);
+                [(int)$datos['categoria_id'], $datos['pregunta'], $estado, (int)$usuarioId]);
             $preguntaId = (int)$this->database->lastInsertId();
 
             $this->database->execute(
@@ -56,6 +151,21 @@ class PreguntaModel
     public function obtenerSugeridas()
     {
         return $this->consultar("p.estado = ?", [self::SUGERIDA], "p.fecha_creacion ASC, p.id ASC");
+    }
+
+    // Preguntas activas, opcionalmente filtradas por categoría
+    public function obtenerActivas($categoriaId = 0)
+    {
+        if ((int)$categoriaId > 0) {
+            return $this->consultar("p.estado = ? AND p.categoria_id = ?", [self::ACTIVA, (int)$categoriaId], "p.id DESC");
+        }
+        return $this->consultar("p.estado = ?", [self::ACTIVA], "c.nombre ASC, p.id DESC");
+    }
+
+    public function contarActivas()
+    {
+        $fila = $this->database->queryOne("SELECT COUNT(*) AS total FROM preguntas WHERE estado = ?", [self::ACTIVA]);
+        return (int)($fila['total'] ?? 0);
     }
 
     //Devuelve las preguntas pedidas, indexadas por id

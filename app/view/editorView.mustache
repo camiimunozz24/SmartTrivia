@@ -1,17 +1,32 @@
 <link rel="stylesheet" href="/public/css/login.css">
 <link rel="stylesheet" href="/public/css/perfil.css">
-<link rel="stylesheet" href="/public/css/editor.css">
+<link rel="stylesheet" href="/public/css/editor.css?v=3">
 
-<div class="w3-content perfil" style="max-width:860px">
+<div class="w3-content perfil" style="max-width:920px">
     <div class="card-trivia-perfil w3-margin-top">
 
         <div class="perfil-cabecera">
             <div class="perfil-avatar-placeholder" style="background:#e0f2fe; color:#0369a1;">✏️</div>
             <div class="perfil-titulos">
                 <h2>Panel de Editor</h2>
-                <p class="perfil-subtitulo">Revisá las preguntas sugeridas y los reportes de los usuarios</p>
+                <p class="perfil-subtitulo">Gestioná sugerencias, reportes, banco de preguntas y categorías</p>
                 <span class="perfil-badge" style="background-color: #0284c7; color: white;">Rol: {{rol}}</span>
             </div>
+        </div>
+
+        <!-- Menú rápido de accesos directos -->
+        <div class="ed-menu-rapido">
+            <a href="/editor/show?seccion=crear" class="ed-acceso ed-acceso-crear{{#seccion_crear}} activo{{/seccion_crear}}">
+                ➕ Crear pregunta
+            </a>
+            <a href="/editor/show?seccion=sugerencias" class="ed-acceso ed-acceso-sug{{#seccion_sugerencias}} activo{{/seccion_sugerencias}}">
+                💡 Revisar solicitudes de preguntas
+                <span class="ed-acceso-badge">{{cant_sugerencias}}</span>
+            </a>
+            <a href="/editor/show?seccion=reportes" class="ed-acceso ed-acceso-rep{{#seccion_reportes}} activo{{/seccion_reportes}}">
+                🚩 Revisar reportes
+                <span class="ed-acceso-badge">{{cant_reportes}}</span>
+            </a>
         </div>
 
         {{#aviso}}
@@ -25,8 +40,62 @@
             <a href="/editor/show?seccion=reportes" class="ed-tab{{#seccion_reportes}} activa{{/seccion_reportes}}">
                 🚩 Reportes <span class="ed-contador">{{cant_reportes}}</span>
             </a>
+            <a href="/editor/show?seccion=preguntas" class="ed-tab{{#seccion_preguntas}} activa{{/seccion_preguntas}}">
+                📚 Preguntas <span class="ed-contador">{{cant_preguntas}}</span>
+            </a>
+            <a href="/editor/show?seccion=categorias" class="ed-tab{{#seccion_categorias}} activa{{/seccion_categorias}}">
+                🏷️ Categorías <span class="ed-contador">{{cant_categorias}}</span>
+            </a>
         </nav>
 
+        <!-- ==================== CREAR PREGUNTA DIRECTA ==================== -->
+        {{#seccion_crear}}
+            <div class="ed-cat-nueva">
+                <h4 class="ed-subtitulo">➕ Crear nueva pregunta (entra activa al juego)</h4>
+                <form action="/editor/crearPregunta" method="post">
+                    <div class="ed-campo">
+                        <label for="crear-pregunta">Pregunta</label>
+                        <input class="w3-input w3-border" type="text" id="crear-pregunta" name="pregunta" maxlength="255" value="{{crear_pregunta}}" placeholder="Escribí el enunciado de la pregunta..." required>
+                    </div>
+
+                    <div class="ed-campo">
+                        <label for="crear-categoria">Categoría</label>
+                        <select class="w3-select w3-border" id="crear-categoria" name="categoria_id" required>
+                            <option value="">Elegí una categoría…</option>
+                            {{#categorias_crear}}
+                                <option value="{{id}}" {{#seleccionada}}selected{{/seleccionada}}>{{nombre}}</option>
+                            {{/categorias_crear}}
+                        </select>
+                    </div>
+
+                    <div class="ed-fila">
+                        <div class="ed-campo">
+                            <label for="crear-correcta">✅ Respuesta correcta</label>
+                            <input class="w3-input w3-border" type="text" id="crear-correcta" name="correcta" maxlength="150" value="{{crear_correcta}}" required>
+                        </div>
+                        <div class="ed-campo">
+                            <label for="crear-inc1">Incorrecta 1</label>
+                            <input class="w3-input w3-border" type="text" id="crear-inc1" name="incorrecta1" maxlength="150" value="{{crear_incorrecta1}}" required>
+                        </div>
+                        <div class="ed-campo">
+                            <label for="crear-inc2">Incorrecta 2</label>
+                            <input class="w3-input w3-border" type="text" id="crear-inc2" name="incorrecta2" maxlength="150" value="{{crear_incorrecta2}}" required>
+                        </div>
+                        <div class="ed-campo">
+                            <label for="crear-inc3">Incorrecta 3</label>
+                            <input class="w3-input w3-border" type="text" id="crear-inc3" name="incorrecta3" maxlength="150" value="{{crear_incorrecta3}}" required>
+                        </div>
+                    </div>
+
+                    <div class="ed-botones">
+                        <button type="submit" class="w3-button w3-green w3-round" style="font-weight:700;">✔ Guardar y activar pregunta</button>
+                        <a href="/editor/show?seccion=preguntas" class="w3-button w3-light-gray w3-round" style="text-decoration:none; font-weight:600;">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        {{/seccion_crear}}
+
+        <!-- ==================== SUGERENCIAS ==================== -->
         {{#seccion_sugerencias}}
             {{^hay_sugerencias}}
                 <p class="ed-vacio">No hay sugerencias pendientes. ¡Todo al día! 🎉</p>
@@ -54,6 +123,7 @@
             {{/sugerencias}}
         {{/seccion_sugerencias}}
 
+        <!-- ==================== REPORTES ==================== -->
         {{#seccion_reportes}}
             {{^hay_reportes}}
                 <p class="ed-vacio">No hay preguntas reportadas pendientes. 👍</p>
@@ -75,12 +145,140 @@
                             <button type="submit" class="w3-button w3-blue w3-round">💾 Guardar cambios</button>
                             <button type="submit" formaction="/editor/mantener" formnovalidate class="w3-button w3-green w3-round">✔ Mantener activa</button>
                             <button type="submit" formaction="/editor/baja" formnovalidate class="w3-button w3-red w3-round"
-                                    onclick="return confirm('¿Dar de baja esta pregunta? Dejará de aparecer en el juego.');">⛔ Dar de baja</button>
+                                    onclick="return confirm('¿Dar de baja esta pregunta? Es un borrado lógico: dejará de aparecer en el juego.');">⛔ Dar de baja</button>
                         </div>
                     </form>
                 </details>
             {{/reportes}}
         {{/seccion_reportes}}
+
+        <!-- ==================== BANCO DE PREGUNTAS POR CATEGORÍA ==================== -->
+        {{#seccion_preguntas}}
+            <div class="ed-filtros-cat">
+                {{#filtro_categorias}}
+                    <a href="/editor/show?seccion=preguntas&cat={{id}}"
+                       class="ed-pill-cat{{#activa}} activa{{/activa}}"
+                       style="--color-categoria: {{color}};">
+                        <span class="ed-dot" style="background:{{color}};"></span>
+                        {{nombre}}
+                        <span class="ed-pill-num">{{cant_activas}}</span>
+                    </a>
+                {{/filtro_categorias}}
+                <a href="/editor/show?seccion=preguntas&cat=0"
+                   class="ed-pill-cat{{#todas_categorias}} activa{{/todas_categorias}}"
+                   style="--color-categoria: #334155;">
+                    Todas
+                    <span class="ed-pill-num">{{cant_preguntas}}</span>
+                </a>
+            </div>
+
+            {{^hay_preguntas_activas}}
+                <p class="ed-vacio">No hay preguntas activas en esta categoría.</p>
+            {{/hay_preguntas_activas}}
+
+            {{#preguntas_activas}}
+                <details class="ed-tarjeta" style="--color-categoria: {{color}};">
+                    <summary>
+                        <span class="ed-categoria">{{categoria}}</span>
+                        <span class="ed-enunciado">{{enunciado}}</span>
+                        <span class="ed-meta">#{{id}} · creada por {{autor}} · {{fecha}}</span>
+                    </summary>
+
+                    <form action="/editor/editar" method="post" class="ed-form">
+                        <input type="hidden" name="seccion" value="preguntas">
+                        <input type="hidden" name="cat" value="{{cat_seleccionada}}">
+                        {{> preguntaCampos}}
+
+                        <div class="ed-botones">
+                            <button type="submit" class="w3-button w3-blue w3-round">💾 Guardar cambios</button>
+                            <button type="submit" formaction="/editor/baja" formnovalidate class="w3-button w3-red w3-round"
+                                    onclick="return confirm('¿Dar de baja esta pregunta? Es un borrado lógico y dejará de aparecer en las partidas.');">⛔ Dar de baja</button>
+                        </div>
+                    </form>
+                </details>
+            {{/preguntas_activas}}
+        {{/seccion_preguntas}}
+
+        <!-- ==================== GESTIÓN DE CATEGORÍAS ==================== -->
+        {{#seccion_categorias}}
+            <!-- Crear nueva categoría -->
+            <div class="ed-cat-nueva">
+                <h4 class="ed-subtitulo">➕ Nueva categoría</h4>
+                <form action="/editor/crearCategoria" method="post" class="ed-cat-form-inline">
+                    <div class="ed-cat-campo-nombre">
+                        <label for="nueva-cat-nombre">Nombre</label>
+                        <input id="nueva-cat-nombre" type="text" name="nombre" maxlength="50" placeholder="Ej: Arte y Literatura" required>
+                    </div>
+                    <div class="ed-cat-campo-color">
+                        <label for="nueva-cat-color">Color</label>
+                        <input id="nueva-cat-color" type="color" name="color" value="#1e56a0">
+                    </div>
+                    <div>
+                        <label>&nbsp;</label>
+                        <button type="submit" class="w3-button w3-green w3-round ed-cat-btn-altura">Crear categoría</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tabla / listado de categorías existentes -->
+            <h4 class="ed-subtitulo" style="margin-top:20px;">🏷️ Categorías existentes</h4>
+            {{^hay_categorias}}
+                <p class="ed-vacio">Todavía no hay categorías cargadas.</p>
+            {{/hay_categorias}}
+
+            {{#categorias_lista}}
+                <div class="ed-cat-card" style="--color-categoria: {{color}};">
+                    <div class="ed-cat-fila">
+                        <!-- Formulario de edición rápida (tipografía y color) -->
+                        <form action="/editor/editarCategoria" method="post" class="ed-cat-editar-form">
+                            <input type="hidden" name="id" value="{{id}}">
+                            <input type="color" name="color" value="{{color}}" class="ed-color-picker" title="Color de la categoría">
+                            <input type="text" name="nombre" value="{{nombre}}" maxlength="50" class="ed-cat-input" required>
+                            <span class="ed-cat-conteo">{{texto_preguntas}}</span>
+                            <button type="submit" class="w3-button w3-blue w3-round w3-small ed-cat-btn">💾 Guardar</button>
+                            <a href="/editor/show?seccion=preguntas&cat={{id}}" class="w3-button w3-light-gray w3-round w3-small ed-cat-btn" style="text-decoration:none;">
+                                📚 Ver preguntas
+                            </a>
+                        </form>
+                    </div>
+
+                    <!-- Borrado con confirmación adicional + creación obligatoria de categoría de reemplazo -->
+                    <details class="ed-cat-borrar-wrap">
+                        <summary class="ed-cat-borrar-toggle">🗑️ Eliminar esta categoría…</summary>
+                        <form action="/editor/eliminarCategoria" method="post" class="ed-cat-borrar-form"
+                              onsubmit="return confirm('CONFIRMACIÓN FINAL: Se eliminará la categoría «{{nombre}}» y todas sus preguntas pasarán a la nueva categoría indicada. ¿Continuar?');">
+                            <input type="hidden" name="id" value="{{id}}">
+                            <div class="ed-cat-alerta">
+                                <strong>⚠️ Confirmación requerida:</strong> Al eliminar <strong>«{{nombre}}»</strong> ({{cant_total}} preguntas asociadas en total),
+                                debés crear una <strong>nueva categoría</strong> a la cual se reasignarán automáticamente todas sus preguntas.
+                            </div>
+
+                            <div class="ed-cat-form-inline" style="margin-top:10px;">
+                                <div class="ed-cat-campo-nombre">
+                                    <label>Nombre de la nueva categoría de reemplazo</label>
+                                    <input type="text" name="nuevo_nombre" maxlength="50" placeholder="Ej: Cultura General" required>
+                                </div>
+                                <div class="ed-cat-campo-color">
+                                    <label>Color</label>
+                                    <input type="color" name="nuevo_color" value="{{color}}">
+                                </div>
+                            </div>
+
+                            <label class="ed-cat-check">
+                                <input type="checkbox" name="confirmar" value="1" required>
+                                <span>Confirmo que quiero eliminar <strong>«{{nombre}}»</strong> y reasignar todas sus preguntas a la nueva categoría creada.</span>
+                            </label>
+
+                            <div style="margin-top:10px;">
+                                <button type="submit" class="w3-button w3-red w3-round w3-small" style="font-weight:700;">
+                                    🗑️ Eliminar «{{nombre}}» y reasignar preguntas
+                                </button>
+                            </div>
+                        </form>
+                    </details>
+                </div>
+            {{/categorias_lista}}
+        {{/seccion_categorias}}
 
         {{#es_admin}}
             <div style="margin-top:16px; text-align:right;">
