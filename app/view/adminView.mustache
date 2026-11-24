@@ -1,80 +1,495 @@
-<link rel="stylesheet" href="/public/css/login.css">
-<link rel="stylesheet" href="/public/css/perfil.css">
-
-<div class="w3-content perfil" style="max-width:860px">
-    <div class="card-trivia-perfil w3-margin-top">
-
-        <!-- Cabecera del Panel Admin -->
-        <div class="perfil-cabecera" style="justify-content:space-between; flex-wrap:wrap; gap:12px;">
-            <div style="display:flex; align-items:center; gap:16px;">
-                <div class="perfil-avatar-placeholder">⚙️</div>
-                <div class="perfil-titulos">
-                    <h2>Panel de Administración</h2>
-                    <p class="perfil-subtitulo">SmartTrivia · Visibilidad y supervisión general (@{{usuario}})</p>
-                    <span class="perfil-badge" style="background-color: #d9534f; color: white;">
-                        ★ Zona Administración ({{rol}})
-                    </span>
-                </div>
-            </div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                <a href="/editor/show" class="w3-button w3-blue w3-round" style="text-decoration:none; font-weight:600;">
-                    ✏️ Panel Editor
-                </a>
-                {{#es_maestro}}
-                <a href="/maestro/show" class="w3-button w3-purple w3-round" style="text-decoration:none; font-weight:600;">
-                    👑 Control Maestro
-                </a>
-                {{/es_maestro}}
-            </div>
+<link rel="stylesheet" href="/public/css/admin.css">
+<div class="admin-container">
+    <!-- 1. Cabecera del Panel -->
+    <div class="admin-header">
+        <div class="admin-header-titulos">
+            <h1>📊 Panel de Estadísticas y Reportes</h1>
+            <p class="admin-header-subtitulo">
+                Supervisión del juego, métricas de rendimiento y demografía de usuarios (@{{usuario}})
+            </p>
+            <span class="admin-badge">Zona de Administración ({{rol}})</span>
         </div>
-
-        <!-- Resumen General del Sistema -->
-        {{#resumen}}
-        <div class="perfil-stats" style="margin-top:20px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
-            <div class="stat-card stat-puntos">
-                <span class="stat-icono">👥</span>
-                <div class="stat-info">
-                    <div class="stat-valor">{{total_usuarios}}</div>
-                    <div class="stat-label">Usuarios</div>
-                </div>
-            </div>
-            <div class="stat-card stat-partidas">
-                <span class="stat-icono">✏️</span>
-                <div class="stat-info">
-                    <div class="stat-valor">{{total_editores}}</div>
-                    <div class="stat-label">Editores</div>
-                </div>
-            </div>
-            <div class="stat-card stat-puntos">
-                <span class="stat-icono">🎮</span>
-                <div class="stat-info">
-                    <div class="stat-valor">{{total_partidas}}</div>
-                    <div class="stat-label">Partidas jugadas</div>
-                </div>
-            </div>
-            <div class="stat-card stat-partidas">
-                <span class="stat-icono">❓</span>
-                <div class="stat-info">
-                    <div class="stat-valor">{{total_preguntas}}</div>
-                    <div class="stat-label">Preguntas activas</div>
-                </div>
-            </div>
+        <div class="admin-acciones">
+            <button type="button" class="btn-print" onclick="window.print()">
+                🖨️ Imprimir / Exportar Reportes
+            </button>
+            <a href="/editor/show" class="w3-button w3-blue w3-round" style="text-decoration:none; font-weight:600; padding:10px 16px;">
+                ✏️ Panel Editor
+            </a>
+            {{#es_maestro}}
+            <a href="/maestro/show" class="w3-button w3-purple w3-round" style="text-decoration:none; font-weight:600; padding:10px 16px;">
+                👑 Control Maestro
+            </a>
+            {{/es_maestro}}
         </div>
-        {{/resumen}}
-
-        <!-- Cartel de herramientas pendientes del rol editor -->
-        <section class="seccion" style="margin-top: 24px;">
-            <div style="background:#fffbeb; border:1px dashed #f59e0b; border-radius:10px; padding:22px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
-                <span style="font-size:36px;">⏳</span>
-                <div style="flex:1; min-width:220px;">
-                    <h4 style="margin:0 0 6px; color:#92400e; font-weight:700;">A espera de rol editor</h4>
-                    <p style="margin:0; color:#b45309; font-size:0.93rem;">
-                        Las herramientas propias de administración sobre los contenidos del editor (preguntas, categorías y reportes)
-                        se habilitarán en este panel una vez que el rol <strong>editor</strong> esté configurado.
-                    </p>
-                </div>
-            </div>
-        </section>
-
     </div>
-</div>
+    <!-- 2. Barra de Filtros de Período -->
+    <div class="filtros-barra">
+        <div class="filtros-label">
+            <span>📅 Filtrar reportes por período:</span>
+            <strong>{{periodo_nombre}}</strong>
+        </div>
+        <div class="filtros-botones">
+            <a href="/admin/show?periodo=dia" class="filtro-btn {{#es_dia}}activo{{/es_dia}}">Hoy (Día)</a>
+            <a href="/admin/show?periodo=semana" class="filtro-btn {{#es_semana}}activo{{/es_semana}}">Semana</a>
+            <a href="/admin/show?periodo=mes" class="filtro-btn {{#es_mes}}activo{{/es_mes}}">Mes</a>
+            <a href="/admin/show?periodo=anio" class="filtro-btn {{#es_anio}}activo{{/es_anio}}">Año</a>
+            <a href="/admin/show?periodo=todos" class="filtro-btn {{#es_todos}}activo{{/es_todos}}">Histórico Completo</a>
+        </div>
+    </div>
+    <!-- 3. Tarjetas de Métricas Clave (KPIs) -->
+    <div class="kpis-grid">
+        <div class="kpi-card kpi-jugadores">
+            <div class="kpi-icono">👥</div>
+            <div class="kpi-valor">{{total_jugadores}}</div>
+            <div class="kpi-label">Jugadores totales</div>
+        </div>
+        <div class="kpi-card kpi-partidas">
+            <div class="kpi-icono">🎮</div>
+            <div class="kpi-valor">{{partidas_jugadas}}</div>
+            <div class="kpi-label">Partidas en período</div>
+        </div>
+        <div class="kpi-card kpi-nuevos">
+            <div class="kpi-icono">✨</div>
+            <div class="kpi-valor">{{usuarios_nuevos}}</div>
+            <div class="kpi-label">Usuarios nuevos</div>
+        </div>
+
+ <div class="kpi-card kpi-preguntas">
+            <div class="kpi-icono">❓</div>
+            <div class="kpi-valor">{{preguntas_en_juego}}</div>
+            <div class="kpi-label">Preguntas en juego</div>
+        </div>
+        <div class="kpi-card kpi-creadas">
+            <div class="kpi-icono">📝</div>
+            <div class="kpi-valor">{{preguntas_creadas}}</div>
+            <div class="kpi-label">Preguntas creadas</div>
+        </div>
+        <div class="kpi-card kpi-acierto">
+            <div class="kpi-icono">🎯</div>
+            <div class="kpi-valor">{{tasa_acierto_global}}%</div>
+            <div class="kpi-label">% Acierto global</div>
+        </div>
+    </div>
+    <!-- 4. Grilla de Gráficos y Tablas de Reporte -->
+    <div class="dashboard-grid">
+        <!-- REPORTE 1: Usuarios por País -->
+        <div class="reporte-card">
+            <div class="reporte-card-header">
+                <div>
+                    <h3 class="reporte-card-titulo">🌍 Cantidad de usuarios por país</h3>
+                    <p class="reporte-card-subtitulo">Distribución geográfica de los jugadores registrados</p>
+                </div>
+            </div>
+            <div class="chart-wrap">
+                <canvas id="chartPais"></canvas>
+            </div>
+            <div class="reporte-tabla-wrap">
+                <table class="reporte-tabla">
+                    <thead>
+                        <tr>
+                            <th>País</th>
+                            <th style="text-align:right;">Cantidad</th>
+                            <th style="text-align:right;">Porcentaje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#tabla_paises}}
+                        <tr>
+                            <td>{{pais}}</td>
+                            <td style="text-align:right; font-weight:600;">{{total}}</td>
+                            <td style="text-align:right;"><span class="badge-porcentaje">{{porcentaje}}%</span></td>
+                        </tr>
+                        {{/tabla_paises}}
+                        {{^hay_paises}}
+                        <tr>
+                            <td colspan="3" class="empty-state">No hay registros de usuarios en este período</td>
+                        </tr>
+                        {{/hay_paises}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+<!-- REPORTE 2: Usuarios por Sexo / Género -->
+        <div class="reporte-card">
+            <div class="reporte-card-header">
+                <div>
+                    <h3 class="reporte-card-titulo">🚻 Cantidad de usuarios por sexo</h3>
+                    <p class="reporte-card-subtitulo">Proporción por género de los jugadores</p>
+                </div>
+            </div>
+            <div class="chart-wrap">
+                <canvas id="chartSexo"></canvas>
+            </div>
+            <div class="reporte-tabla-wrap">
+                <table class="reporte-tabla">
+                    <thead>
+                        <tr>
+                            <th>Sexo / Género</th>
+                            <th style="text-align:right;">Cantidad</th>
+                            <th style="text-align:right;">Porcentaje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#tabla_sexo}}
+                        <tr>
+                            <td>{{genero}}</td>
+                            <td style="text-align:right; font-weight:600;">{{total}}</td>
+                            <td style="text-align:right;"><span class="badge-porcentaje">{{porcentaje}}%</span></td>
+                        </tr>
+                        {{/tabla_sexo}}
+                        {{^hay_sexo}}
+                        <tr>
+                            <td colspan="3" class="empty-state">No hay datos para este período</td>
+                        </tr>
+                        {{/hay_sexo}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+ <!-- REPORTE 3: Usuarios por Grupo de Edad -->
+        <div class="reporte-card">
+            <div class="reporte-card-header">
+                <div>
+                    <h3 class="reporte-card-titulo">🎂 Usuarios por grupo de edad</h3>
+                    <p class="reporte-card-subtitulo">Menores (&lt;18), Medio (18 a 64) y Jubilados (65+)</p>
+                </div>
+            </div>
+            <div class="chart-wrap">
+                <canvas id="chartEdad"></canvas>
+            </div>
+            <div class="reporte-tabla-wrap">
+                <table class="reporte-tabla">
+                    <thead>
+                        <tr>
+                            <th>Grupo</th>
+                            <th>Rango de edad</th>
+                            <th style="text-align:right;">Cantidad</th>
+                            <th style="text-align:right;">Porcentaje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#tabla_edad}}
+                        <tr>
+                            <td><strong>{{grupo}}</strong></td>
+                            <td>{{rango}}</td>
+                            <td style="text-align:right; font-weight:600;">{{total}}</td>
+                            <td style="text-align:right;"><span class="badge-porcentaje">{{porcentaje}}%</span></td>
+                        </tr>
+                        {{/tabla_edad}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+<!-- REPORTE 4: Porcentaje de Preguntas Respondidas Correctamente por Usuario -->
+        <div class="reporte-card">
+            <div class="reporte-card-header">
+                <div>
+                    <h3 class="reporte-card-titulo">🎯 Porcentaje de acierto por usuario</h3>
+                    <p class="reporte-card-subtitulo">Efectividad y respuestas correctas de jugadores activos</p>
+                </div>
+            </div>
+            <div class="chart-wrap">
+                <canvas id="chartEfectividad"></canvas>
+            </div>
+            <div class="reporte-tabla-wrap">
+                <table class="reporte-tabla">
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th style="text-align:center;">Partidas</th>
+                            <th style="text-align:center;">Aciertos / Total</th>
+                            <th style="text-align:right;">% Acierto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#tabla_efectividad}}
+                        <tr>
+                            <td>
+                                <strong>@{{usuario}}</strong>
+                                <div style="font-size:0.78rem; color:#64748b;">{{nombre_completo}}</div>
+                            </td>
+                            <td style="text-align:center;">{{partidas_jugadas}}</td>
+                            <td style="text-align:center;">{{correctas}} / {{total_respondidas}}</td>
+                            <td style="text-align:right;"><span class="badge-porcentaje">{{porcentaje_acierto}}%</span></td>
+                        </tr>
+                        {{/tabla_efectividad}}
+                        {{^hay_efectividad}}
+                        <tr>
+                            <td colspan="4" class="empty-state">No se registraron partidas finalizadas en este período</td>
+                        </tr>
+                        {{/hay_efectividad}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- REPORTE 5: Evolución de Partidas Jugadas -->
+                <div class="reporte-card">
+                    <div class="reporte-card-header">
+                        <div>
+                            <h3 class="reporte-card-titulo">📈 Evolución de partidas jugadas</h3>
+                            <p class="reporte-card-subtitulo">Volumen de partidas finalizadas a lo largo del período</p>
+                        </div>
+                    </div>
+                    <div class="chart-wrap">
+                        <canvas id="chartPartidas"></canvas>
+                    </div>
+                    <div class="reporte-tabla-wrap">
+                        <table class="reporte-tabla">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th style="text-align:right;">Partidas completadas</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{#tabla_evolucion}}
+                                <tr>
+                                    <td>{{fecha}}</td>
+                                    <td style="text-align:right; font-weight:600;">{{total}}</td>
+                                </tr>
+                                {{/tabla_evolucion}}
+                                {{^hay_evolucion}}
+                                <tr>
+                                    <td colspan="2" class="empty-state">Sin partidas en este rango</td>
+                                </tr>
+                                {{/hay_evolucion}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- REPORTE 6: Preguntas por Categoría -->
+                        <div class="reporte-card">
+                            <div class="reporte-card-header">
+                                <div>
+                                    <h3 class="reporte-card-titulo">📚 Preguntas en el juego por categoría</h3>
+                                    <p class="reporte-card-subtitulo">Distribución temática de las preguntas activas</p>
+                                </div>
+                            </div>
+                            <div class="chart-wrap">
+                                <canvas id="chartCategorias"></canvas>
+                            </div>
+                            <div class="reporte-tabla-wrap">
+                                <table class="reporte-tabla">
+                                    <thead>
+                                        <tr>
+                                            <th>Categoría</th>
+                                            <th style="text-align:right;">Preguntas activas</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {{#tabla_categorias}}
+                                        <tr>
+                                            <td>
+                                                <span style="display:inline-block; width:12px; height:12px; border-radius:50%; background-color:{{color}}; margin-right:6px;"></span>
+                                                <strong>{{categoria}}</strong>
+                                            </td>
+                                            <td style="text-align:right; font-weight:600;">{{total}}</td>
+                                        </tr>
+                                        {{/tabla_categorias}}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cargar Chart.js: intenta local primero y fallback a CDN -->
+                <script src="/public/js/chart.min.js"></script>
+                <script>
+                if (typeof Chart === 'undefined') {
+                    document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js"><\/script>');
+                }
+                </script>
+                <!-- Renderizado interactivo de los gráficos con Chart.js -->
+                <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    if (typeof Chart === 'undefined') {
+                        console.error('Chart.js no pudo ser cargado.');
+                        return;
+                    }
+
+  // Configuración visual común
+    Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+    Chart.defaults.color = '#475569';
+    // 1. Gráfico Usuarios por País
+    var paisLabels = {{{json_pais_labels}}};
+    var paisData   = {{{json_pais_data}}};
+    var ctxPais = document.getElementById('chartPais');
+    if (ctxPais) {
+        new Chart(ctxPais, {
+            type: 'bar',
+            data: {
+                labels: paisLabels.length ? paisLabels : ['Sin datos'],
+                datasets: [{
+                    label: 'Cantidad de usuarios',
+                    data: paisData.length ? paisData : [0],
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0 }
+                    }
+                }
+            }
+        });
+    }
+
+    // 2. Gráfico Usuarios por Sexo
+        var sexoLabels = {{{json_sexo_labels}}};
+        var sexoData   = {{{json_sexo_data}}};
+        var ctxSexo = document.getElementById('chartSexo');
+        if (ctxSexo) {
+            new Chart(ctxSexo, {
+                type: 'doughnut',
+                data: {
+                    labels: sexoLabels.length ? sexoLabels : ['Sin datos'],
+                    datasets: [{
+                        data: sexoData.length ? sexoData : [1],
+                        backgroundColor: ['#ec4899', '#3b82f6', '#94a3b8', '#8b5cf6']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+            // 3. Gráfico Usuarios por Grupo de Edad
+            var edadLabels = {{{json_edad_labels}}};
+            var edadData   = {{{json_edad_data}}};
+            var edadColors = {{{json_edad_colors}}};
+            var ctxEdad = document.getElementById('chartEdad');
+            if (ctxEdad) {
+                new Chart(ctxEdad, {
+                    type: 'doughnut',
+                    data: {
+                        labels: edadLabels,
+                        datasets: [{
+                            data: edadData,
+                            backgroundColor: edadColors
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+            }
+
+            // 4. Gráfico Efectividad (% de acierto por usuario)
+                var efLabels = {{{json_efectividad_labels}}};
+                var efData   = {{{json_efectividad_data}}};
+                var ctxEf = document.getElementById('chartEfectividad');
+                if (ctxEf) {
+                    new Chart(ctxEf, {
+                        type: 'bar',
+                        data: {
+                            labels: efLabels.length ? efLabels : ['Sin partidas'],
+                            datasets: [{
+                                label: '% de Acierto',
+                                data: efData.length ? efData : [0],
+                                backgroundColor: '#10b981',
+                                borderRadius: 6
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y', // Barras horizontales para ver cómodos los nombres
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                x: {
+                                    beginAtZero: true,
+                                    max: 100,
+                                    ticks: {
+                                        callback: function(v) { return v + '%'; }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // 5. Gráfico Evolución de Partidas
+                    var partLabels = {{{json_partidas_labels}}};
+                    var partData   = {{{json_partidas_data}}};
+                    var ctxPart = document.getElementById('chartPartidas');
+                    if (ctxPart) {
+                        new Chart(ctxPart, {
+                            type: 'line',
+                            data: {
+                                labels: partLabels.length ? partLabels : ['Sin registros'],
+                                datasets: [{
+                                    label: 'Partidas finalizadas',
+                                    data: partData.length ? partData : [0],
+                                    borderColor: '#8b5cf6',
+                                    backgroundColor: 'rgba(139, 92, 246, 0.15)',
+                                    fill: true,
+                                    tension: 0.3,
+                                    pointBackgroundColor: '#8b5cf6',
+                                    pointRadius: 4
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { display: false }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: { precision: 0 }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                    // 6. Gráfico Preguntas por Categoría
+                    var catLabels = {{{json_cat_labels}}};
+                    var catData   = {{{json_cat_data}}};
+                    var catColors = {{{json_cat_colors}}};
+                    var ctxCat = document.getElementById('chartCategorias');
+                    if (ctxCat) {
+                        new Chart(ctxCat, {
+                            type: 'pie',
+                            data: {
+                                labels: catLabels,
+                                datasets: [{
+                                    data: catData,
+                                    backgroundColor: catColors
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { position: 'bottom' }
+                                }
+                            }
+                        });
+                    }
+                });
+                </script>
+
